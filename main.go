@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/termenv"
@@ -18,6 +19,33 @@ var (
 
 type Model struct {
 	textInput textinput.Model
+	spinner   spinner.Model
+	loading   bool
+	data      *tui.Data
+	error     error
+}
+
+type gotData struct {
+	Data *tui.Data
+}
+
+type errorMsg struct {
+	err error
+}
+
+func (e errorMsg) Error() string {
+	return e.err.Error()
+}
+
+const url = "https://jsonplaceholder.typicode.com"
+
+func fetchData(id string) tea.Msg {
+	data := &tui.Data{}
+	err := tui.GetJson(fmt.Sprintf("%s/todos/%s", url, id), data)
+	if err != nil {
+		return errorMsg{err}
+	}
+	return gotData{Data: data}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -33,11 +61,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "enter":
+			m.loading = true
+			m.spinner, cmd = m.spinner.Update(msg)
 			return m, func() tea.Msg {
-				return tui.GetData(m.textInput.Value())
+				return fetchData(m.textInput.Value())
 			}
 		}
-
+	case errorMsg:
+		m.error = msg
+	case gotData:
+		m.data = msg.Data
+		m.loading = false
+		return m, nil
 	}
 
 	m.textInput, cmd = m.textInput.Update(msg)
@@ -51,12 +86,20 @@ func initialModel() Model {
 	textInput.Placeholder = "Type your question here"
 	textInput.Focus()
 
+	spinner := spinner.New()
+
 	return Model{
 		textInput: textInput,
+		spinner:   spinner,
 	}
 }
 
 func (m Model) View() string {
+	if m.loading {
+		// return m.spinner.View()
+		return fmt.Sprint("Loading...")
+	}
+
 	return fmt.Sprintf(
 		"Question? \n\n %s",
 		m.textInput.View(),
