@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"log"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -62,7 +62,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter":
 			m.loading = true
-			m.spinner, cmd = m.spinner.Update(msg)
+			// m.spinner, cmd = m.spinner.Update(msg)
 			return m, func() tea.Msg {
 				return fetchData(m.textInput.Value())
 			}
@@ -94,21 +94,36 @@ func initialModel() Model {
 	}
 }
 
-func (m Model) View() string {
-	if m.loading {
-		// return m.spinner.View()
-		return fmt.Sprint("Loading...")
-	}
-
+func indexView(content interface{}) string {
 	return fmt.Sprintf(
 		"Question? \n\n %s",
-		m.textInput.View(),
+		content,
 	) + "\n\n" + help("space: switch modes • q: exit\n")
 }
 
+func (m Model) View() string {
+
+	if m.error != nil {
+		return indexView(fmt.Sprintf("We had some trouble: %v", m.error))
+	}
+
+	if m.loading {
+		return "Loading..."
+	}
+
+	if m.data != nil {
+		c := keyword(fmt.Sprintf("%+v", m.data))
+		return indexView(c)
+	}
+
+	return indexView(m.textInput.View())
+}
+
 func main() {
+	log.SetPrefix("tui: ")
+	log.SetFlags(log.Ltime | log.LUTC)
+
 	if err := tea.NewProgram(initialModel(), tea.WithAltScreen()).Start(); err != nil {
-		fmt.Printf("Uh oh, there was an error: %v\n", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
