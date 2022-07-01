@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/termenv"
-	"github.com/tomekz/tui/tui"
+	data "github.com/tomekz/tui/src"
 )
 
 var (
@@ -21,35 +21,24 @@ type Model struct {
 	textInput textinput.Model
 	spinner   spinner.Model
 	loading   bool
-	data      *tui.Data
+	data      *data.Data
 	error     error
 }
 
 type gotData struct {
-	Data *tui.Data
-}
-
-type errorMsg struct {
-	err error
-}
-
-func (e errorMsg) Error() string {
-	return e.err.Error()
-}
-
-const url = "https://jsonplaceholder.typicode.com"
-
-func fetchData(id string) tea.Msg {
-	data := &tui.Data{}
-	err := tui.GetJson(fmt.Sprintf("%s/todos/%s", url, id), data)
-	if err != nil {
-		return errorMsg{err}
-	}
-	return gotData{Data: data}
+	Data *data.Data
 }
 
 func (m Model) Init() tea.Cmd {
 	return textinput.Blink
+}
+
+func onEnter(value string) tea.Msg {
+	data, err := data.FetchData(value)
+	if err != nil {
+		return err
+	}
+	return gotData{Data: data}
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -64,10 +53,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.loading = true
 			// m.spinner, cmd = m.spinner.Update(msg)
 			return m, func() tea.Msg {
-				return fetchData(m.textInput.Value())
+				return onEnter(m.textInput.Value())
 			}
 		}
-	case errorMsg:
+	case data.DataFetchError:
 		m.error = msg
 	case gotData:
 		m.data = msg.Data
@@ -94,7 +83,7 @@ func initialModel() Model {
 	}
 }
 
-func indexView(content interface{}) string {
+func indexView(content any) string {
 	return fmt.Sprintf(
 		"Question? \n\n %s",
 		content,
