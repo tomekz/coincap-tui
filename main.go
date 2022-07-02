@@ -87,7 +87,7 @@ func indexView(content any) string {
 	return fmt.Sprintf(
 		"Question? \n\n %s",
 		content,
-	) + "\n\n" + help("space: switch modes • q: exit\n")
+	) + "\n\n" + help("◀ Enter: submit • q: exit ▶\n")
 }
 
 func (m Model) View() string {
