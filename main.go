@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	data "github.com/tomekz/tui/src"
 )
@@ -33,12 +34,14 @@ func (m Model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func onEnter(value string) tea.Msg {
-	data, err := data.FetchData(value)
-	if err != nil {
-		return err
+func onEnterCmd(value string) tea.Cmd {
+	return func() tea.Msg {
+		data, err := data.FetchData(value)
+		if err != nil {
+			return err
+		}
+		return gotData{Data: data}
 	}
-	return gotData{Data: data}
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -51,10 +54,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter":
 			m.loading = true
-			// m.spinner, cmd = m.spinner.Update(msg)
-			return m, func() tea.Msg {
-				return onEnter(m.textInput.Value())
-			}
+			return m, tea.Batch(
+				onEnterCmd(m.textInput.Value()),
+				spinner.Tick,
+			)
 		}
 	case data.DataFetchError:
 		m.error = msg
@@ -62,6 +65,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.data = msg.Data
 		m.loading = false
 		return m, nil
+	}
+
+	if m.loading {
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 	}
 
 	m.textInput, cmd = m.textInput.Update(msg)
@@ -75,15 +83,17 @@ func initialModel() Model {
 	textInput.Placeholder = "Type your question here"
 	textInput.Focus()
 
-	spinner := spinner.New()
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("204"))
 
 	return Model{
 		textInput: textInput,
-		spinner:   spinner,
+		spinner:   s,
 	}
 }
 
-func indexView(content any) string {
+func baseView(content any) string {
 	return fmt.Sprintf(
 		"Question? \n\n %s",
 		content,
@@ -93,19 +103,19 @@ func indexView(content any) string {
 func (m Model) View() string {
 
 	if m.error != nil {
-		return indexView(fmt.Sprintf("We had some trouble: %v", m.error))
+		return baseView(fmt.Sprintf("We had some trouble: %v", m.error))
 	}
 
 	if m.loading {
-		return "Loading..."
+		return baseView(fmt.Sprintf("%s loading...", m.spinner.View()))
 	}
 
 	if m.data != nil {
 		c := keyword(fmt.Sprintf("%+v", m.data))
-		return indexView(c)
+		return baseView(c)
 	}
 
-	return indexView(m.textInput.View())
+	return baseView(m.textInput.View())
 }
 
 func main() {
