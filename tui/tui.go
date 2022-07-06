@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	table "github.com/calyptia/go-bubble-table"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,14 +14,14 @@ import (
 )
 
 var (
-	color   = termenv.EnvColorProfile().Color
-	keyword = termenv.Style{}.Foreground(color("204")).Background(color("235")).Styled
-	help    = termenv.Style{}.Foreground(color("241")).Styled
+	color = termenv.EnvColorProfile().Color
+	help  = termenv.Style{}.Foreground(color("241")).Styled
 )
 
 type Model struct {
 	textInput textinput.Model
 	spinner   spinner.Model
+	table     table.Model
 	loading   bool
 	data      *data.Data
 	error     error
@@ -64,6 +65,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case gotData:
 		m.data = msg.Data
 		m.loading = false
+
+		rows := []table.Row{}
+		rows = append(rows, table.SimpleRow{m.data.UserId, m.data.Id, m.data.Title, m.data.Completed})
+		m.table.SetRows(rows)
 		return m, nil
 	}
 
@@ -87,9 +92,12 @@ func initialModel() Model {
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("204"))
 
+	tbl := table.New([]string{"USERID", "ID", "TITLE", "COMPLETED"}, 40, 2)
+
 	return Model{
 		textInput: textInput,
 		spinner:   s,
+		table:     tbl,
 	}
 }
 
@@ -111,8 +119,7 @@ func (m Model) View() string {
 	}
 
 	if m.data != nil {
-		c := keyword(fmt.Sprintf("%+v", m.data))
-		return baseView(c)
+		return baseView(m.table.View())
 	}
 
 	return baseView(m.textInput.View())
