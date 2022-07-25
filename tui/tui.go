@@ -11,6 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	"github.com/tomekz/tui/data"
+	tui "github.com/tomekz/tui/tui/commands"
 )
 
 var (
@@ -19,30 +20,18 @@ var (
 )
 
 type Model struct {
-	textInput textinput.Model
-	spinner   spinner.Model
-	table     table.Model
-	loading   bool
-	data      *data.Data
-	error     error
-}
-
-type gotData struct {
-	Data *data.Data
+	choices  []string
+	cursor   int
+	selected string
+	spinner  spinner.Model
+	table    table.Model
+	loading  bool
+	data     data.Asset
+	error    error
 }
 
 func (m Model) Init() tea.Cmd {
-	return textinput.Blink
-}
-
-func onEnterCmd(value string) tea.Cmd {
-	return func() tea.Msg {
-		data, err := data.FetchData(value)
-		if err != nil {
-			return err
-		}
-		return gotData{Data: data}
-	}
+	return nil
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -53,21 +42,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "enter":
+		case "up", "k":
+			if m.cursor > 0 {
+				m.cursor--
+			}
+		case "down", "j":
+			if m.cursor < len(m.choices)-1 {
+				m.cursor++
+			}
+		case "enter", " ":
 			m.loading = true
+			m.selected = m.choices[m.cursor]
 			return m, tea.Batch(
-				onEnterCmd(m.textInput.Value()),
+				tui.SearchCmd(m.selected),
 				spinner.Tick,
 			)
 		}
 	case data.DataFetchError:
 		m.error = msg
-	case gotData:
-		m.data = msg.Data
+	case tui.GotAsset:
+		m.data = msg.Asset
 		m.loading = false
 
 		rows := []table.Row{}
-		rows = append(rows, table.SimpleRow{m.data.UserId, m.data.Id, m.data.Title, m.data.Completed})
+		rows = append(rows, table.SimpleRow{m.data.AssetID, m.data.Name, m.data.PriceUsd})
 		m.table.SetRows(rows)
 		return m, nil
 	}
@@ -76,8 +74,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 	}
-
-	m.textInput, cmd = m.textInput.Update(msg)
 
 	return m, cmd
 }
@@ -92,23 +88,36 @@ func initialModel() Model {
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("204"))
 
-	tbl := table.New([]string{"USERID", "ID", "TITLE", "COMPLETED"}, 40, 2)
+	tbl := table.New([]string{"ASSETID", "NAME", "PRICE IN USD"}, 40, 2)
 
 	return Model{
-		textInput: textInput,
-		spinner:   s,
-		table:     tbl,
+		choices: []string{"BTC", "ETH", "USDT", "USDC", "BNB", "BUSD", "XRP", "Search other coins..."},
+		spinner: s,
+		table:   tbl,
 	}
 }
 
 func baseView(content any) string {
 	return fmt.Sprintf(
-		"Question? \n\n %s",
+		"Select asset: \n\n%s",
 		content,
-	) + "\n\n" + help("◀ Enter: submit • q: exit ▶\n")
+	) + "\n\n" + help("◀ ↑/k: up • ↓/j: down • enter: submit • q: exit ▶\n")
 }
 
 func (m Model) View() string {
+
+	var s string
+
+	for i, choice := range m.choices {
+
+		cursor := " "
+		if i == m.cursor {
+			cursor = ">"
+		}
+
+		s += fmt.Sprintf("%s %s\n", cursor, choice)
+
+	}
 
 	if m.error != nil {
 		return baseView(fmt.Sprintf("We had some trouble: %v", m.error))
@@ -118,11 +127,11 @@ func (m Model) View() string {
 		return baseView(fmt.Sprintf("%s loading...", m.spinner.View()))
 	}
 
-	if m.data != nil {
+	if m.data.AssetID != "" {
 		return baseView(m.table.View())
 	}
 
-	return baseView(m.textInput.View())
+	return baseView(s)
 }
 
 func Start() {

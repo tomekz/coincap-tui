@@ -1,18 +1,31 @@
 package data
 
 import (
-	"fmt"
+	"os"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 )
 
-type Data struct {
-	UserId    int
-	Id        int
-	Title     string
-	Completed bool
+type Asset struct {
+	AssetID            string    `json:"asset_id"`
+	Name               string    `json:"name"`
+	TypeIsCrypto       int       `json:"type_is_crypto"`
+	DataStart          string    `json:"data_start"`
+	DataEnd            string    `json:"data_end"`
+	DataQuoteStart     time.Time `json:"data_quote_start"`
+	DataQuoteEnd       time.Time `json:"data_quote_end"`
+	DataOrderbookStart time.Time `json:"data_orderbook_start"`
+	DataOrderbookEnd   time.Time `json:"data_orderbook_end"`
+	DataTradeStart     time.Time `json:"data_trade_start"`
+	DataTradeEnd       time.Time `json:"data_trade_end"`
+	DataSymbolsCount   int       `json:"data_symbols_count"`
+	Volume1HrsUsd      float64   `json:"volume_1hrs_usd"`
+	Volume1DayUsd      float64   `json:"volume_1day_usd"`
+	Volume1MthUsd      float64   `json:"volume_1mth_usd"`
+	PriceUsd           float64   `json:"price_usd"`
 }
-
+type ApiResponse []Asset
 type DataFetchError struct {
 	Err error
 }
@@ -21,15 +34,15 @@ func (e DataFetchError) Error() string {
 	return e.Err.Error()
 }
 
-const url = "https://jsonplaceholder.typicode.com"
+var apiKey = os.Getenv("API_KEY")
 
-func FetchData(id string) (*Data, error) {
-	data := &Data{}
+func SearchAssets(asset string) ([]Asset, error) {
+	assets := &ApiResponse{}
+
 	client := resty.New()
-	_, err := client.R().SetResult(data).Get(fmt.Sprintf("%s/todos/%s", url, id))
-
+	_, err := client.R().SetHeader("X-CoinAPI-Key", apiKey).SetResult(assets).Get("https://rest.coinapi.io/v1/assets/" + asset)
 	if err != nil {
 		return nil, DataFetchError{Err: err}
 	}
-	return data, nil
+	return *assets, nil
 }
