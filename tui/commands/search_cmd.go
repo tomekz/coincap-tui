@@ -12,6 +12,7 @@ type GotAsset struct {
 func SearchCmd(value string) tea.Cmd {
 	return func() tea.Msg {
 		data, err := data.SearchAssets(value)
+
 		if err != nil {
 			return err
 		}

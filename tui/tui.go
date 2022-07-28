@@ -105,6 +105,9 @@ func baseView(content any) string {
 }
 
 func (m Model) View() string {
+	if m.error != nil {
+		return baseView(fmt.Sprintf("We had some trouble: %v", m.error))
+	}
 
 	var s string
 
@@ -117,10 +120,6 @@ func (m Model) View() string {
 
 		s += fmt.Sprintf("%s %s\n", cursor, choice)
 
-	}
-
-	if m.error != nil {
-		return baseView(fmt.Sprintf("We had some trouble: %v", m.error))
 	}
 
 	if m.loading {

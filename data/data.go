@@ -1,6 +1,7 @@
 package data
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -43,6 +44,11 @@ func SearchAssets(asset string) ([]Asset, error) {
 	_, err := client.R().SetHeader("X-CoinAPI-Key", apiKey).SetResult(assets).Get("https://rest.coinapi.io/v1/assets/" + asset)
 	if err != nil {
 		return nil, DataFetchError{Err: err}
+	}
+
+	if len(*assets) == 0 {
+		return nil, DataFetchError{Err: errors.New("no assets found")}
+		// return nil, DataFetchError{Err: fmt.Errorf("no assets found")}
 	}
 	return *assets, nil
 }

@@ -3,17 +3,17 @@ module github.com/tomekz/tui
 go 1.18
 
 require (
+	github.com/calyptia/go-bubble-table v0.2.1
 	github.com/charmbracelet/bubbles v0.11.0
 	github.com/charmbracelet/bubbletea v0.21.0
+	github.com/charmbracelet/lipgloss v0.5.0
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/muesli/termenv v0.12.0
 )
 
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/calyptia/go-bubble-table v0.2.1 // indirect
-	github.com/charmbracelet/lipgloss v0.5.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
-	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/juju/ansiterm v0.0.0-20210929141451-8b71cc96ebdc // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
