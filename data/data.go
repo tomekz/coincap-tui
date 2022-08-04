@@ -26,7 +26,6 @@ type Asset struct {
 	Volume1MthUsd      float64   `json:"volume_1mth_usd"`
 	PriceUsd           float64   `json:"price_usd"`
 }
-type ApiResponse []Asset
 type DataFetchError struct {
 	Err error
 }
@@ -38,17 +37,15 @@ func (e DataFetchError) Error() string {
 var apiKey = os.Getenv("API_KEY")
 
 func SearchAssets(asset string) ([]Asset, error) {
-	assets := &ApiResponse{}
-
+	var assets []Asset
 	client := resty.New()
-	_, err := client.R().SetHeader("X-CoinAPI-Key", apiKey).SetResult(assets).Get("https://rest.coinapi.io/v1/assets/" + asset)
+	_, err := client.R().SetHeader("X-CoinAPI-Key", apiKey).SetResult(&assets).Get("https://rest.coinapi.io/v1/assets/" + asset)
 	if err != nil {
 		return nil, DataFetchError{Err: err}
 	}
 
-	if len(*assets) == 0 {
+	if len(assets) == 0 {
 		return nil, DataFetchError{Err: errors.New("no assets found")}
-		// return nil, DataFetchError{Err: fmt.Errorf("no assets found")}
 	}
-	return *assets, nil
+	return assets, nil
 }
