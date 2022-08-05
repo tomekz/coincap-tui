@@ -15,9 +15,23 @@ import (
 )
 
 var (
-	color = termenv.EnvColorProfile().Color
-	help  = termenv.Style{}.Foreground(color("241")).Styled
+	color       = termenv.EnvColorProfile().Color
+	help        = termenv.Style{}.Foreground(color("241")).Styled
+	highlighted = termenv.Style{}.Foreground(color("5")).Styled
 )
+var labels = map[string]string{
+	"BTC":   "Bitcoin",
+	"ETH":   "Ethereum",
+	"USDT":  "Tether",
+	"USDC":  "USD Coin",
+	"BNB":   "BNB",
+	"BUSD":  "Binance USD",
+	"XRP":   "XRP",
+	"ADA":   "Cardano",
+	"SOL":   "Solana",
+	"DOT":   "Polkadot",
+	"Other": "Search other assets...",
+}
 
 type Model struct {
 	choices  []string
@@ -91,17 +105,17 @@ func initialModel() Model {
 	tbl := table.New([]string{"ASSETID", "NAME", "PRICE IN USD"}, 40, 2)
 
 	return Model{
-		choices: []string{"BTC", "ETH", "USDT", "USDC", "BNB", "BUSD", "XRP", "Search other coins..."},
+		choices: []string{"BTC", "ETH", "USDT", "USDC", "BNB", "BUSD", "XRP", "ADA", "SOL", "DOT", "Other"},
 		spinner: s,
 		table:   tbl,
 	}
 }
 
-func baseView(content any) string {
-	return fmt.Sprintf(
-		"Select asset: \n\n%s",
-		content,
-	) + "\n\n" + help("◀ ↑/k: up • ↓/j: down • enter: submit • q: exit ▶\n")
+func baseView(content string) string {
+	return "Select asset" +
+		"\n\n" +
+		content +
+		"\n\n" + help("◀ ↑/k: up • ↓/j: down • enter: submit • q: exit ▶\n")
 }
 
 func (m Model) View() string {
@@ -116,9 +130,10 @@ func (m Model) View() string {
 		cursor := " "
 		if i == m.cursor {
 			cursor = ">"
+			s += fmt.Sprintf(highlighted("%s %s\n"), cursor, labels[choice])
+		} else {
+			s += fmt.Sprintf("%s %s\n", cursor, labels[choice])
 		}
-
-		s += fmt.Sprintf("%s %s\n", cursor, choice)
 
 	}
 
