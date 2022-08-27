@@ -3,152 +3,101 @@ package tui
 import (
 	"fmt"
 	"log"
+	"os"
 
-	table "github.com/calyptia/go-bubble-table"
-	"github.com/charmbracelet/bubbles/spinner"
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/termenv"
-	"github.com/tomekz/tui/data"
-	tui "github.com/tomekz/tui/tui/commands"
+	"github.com/tomekz/tui/tui/searchui"
+	"github.com/tomekz/tui/tui/startui"
 )
 
-var (
-	color       = termenv.EnvColorProfile().Color
-	help        = termenv.Style{}.Foreground(color("241")).Styled
-	highlighted = termenv.Style{}.Foreground(color("5")).Styled
-)
-var labels = map[string]string{
-	"BTC":   "Bitcoin",
-	"ETH":   "Ethereum",
-	"USDT":  "Tether",
-	"USDC":  "USD Coin",
-	"BNB":   "BNB",
-	"BUSD":  "Binance USD",
-	"XRP":   "XRP",
-	"ADA":   "Cardano",
-	"SOL":   "Solana",
-	"DOT":   "Polkadot",
-	"Other": "Search other assets...",
-}
+type sessionState int
 
+const (
+	startView sessionState = iota
+	searchView
+)
+
+// MainModel the main Model of the program; holds other models and bubbles
 type Model struct {
-	choices  []string
-	cursor   int
-	selected string
-	spinner  spinner.Model
-	table    table.Model
-	loading  bool
-	data     data.Asset
-	error    error
+	currentView sessionState
+	start       tea.Model
+	search      tea.Model
 }
 
 func (m Model) Init() tea.Cmd {
+	// Just return `nil`, which means "no I/O right now, please."
 	return nil
+}
+
+func initialModel() Model {
+	return Model{
+		currentView: startView,
+		start:       startui.New(),
+	}
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-
+	log.Println("main.Update", msg, m.currentView)
 	switch msg := msg.(type) {
+
+	case startui.ChangeUiMsg:
+		log.Println("ChangeUiMsg", m.currentView)
+		m.currentView = searchView
+	// case searchUi.ChangeUiMsg:
+	// 	log.Println("ChangeUiMsg", m.state)
+	// 	m.state = barUi
+
+	// Is it a key press?
 	case tea.KeyMsg:
+
+		// Cool, what was the actual key pressed?
 		switch msg.String() {
+
+		// These keys should exit the program.
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-		case "enter", " ":
-			m.loading = true
-			m.selected = m.choices[m.cursor]
-			return m, tea.Batch(
-				tui.SearchCmd(m.selected),
-				spinner.Tick,
-			)
 		}
-	case data.DataFetchError:
-		m.error = msg
-	case tui.GotAsset:
-		m.data = msg.Asset
-		m.loading = false
-
-		rows := []table.Row{}
-		rows = append(rows, table.SimpleRow{m.data.AssetID, m.data.Name, m.data.PriceUsd})
-		m.table.SetRows(rows)
-		return m, nil
 	}
 
-	if m.loading {
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
+	switch m.currentView {
+	case startView:
+		s, c := m.start.Update(msg)
+		m.start = s
+		cmd = c
+	case searchView:
+		m.search = searchui.New()
+		sc, nCmd := m.search.Update(msg)
+		m.search = sc
+		cmd = nCmd
 	}
 
+	// Return the updated model to the Bubble Tea runtime for processing.
+	// Note that we're not returning a command.
 	return m, cmd
 }
-
-func initialModel() Model {
-
-	textInput := textinput.New()
-	textInput.Placeholder = "Type your question here"
-	textInput.Focus()
-
-	s := spinner.New()
-	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("204"))
-
-	tbl := table.New([]string{"ASSETID", "NAME", "PRICE IN USD"}, 40, 2)
-
-	return Model{
-		choices: []string{"BTC", "ETH", "USDT", "USDC", "BNB", "BUSD", "XRP", "ADA", "SOL", "DOT", "Other"},
-		spinner: s,
-		table:   tbl,
-	}
-}
-
-func baseView(content string) string {
-	return "Select asset" +
-		"\n\n" +
-		content +
-		"\n\n" + help("◀ ↑/k: up • ↓/j: down • enter: submit • q: exit ▶\n")
-}
-
 func (m Model) View() string {
-	if m.error != nil {
-		return baseView(fmt.Sprintf("We had some trouble: %v", m.error))
+	switch m.currentView {
+	case searchView:
+		return m.search.View()
+	default:
+		return m.start.View()
 	}
-
-	var s string
-
-	for i, choice := range m.choices {
-
-		cursor := " "
-		if i == m.cursor {
-			cursor = ">"
-			s += fmt.Sprintf(highlighted("%s %s\n"), cursor, labels[choice])
-		} else {
-			s += fmt.Sprintf("%s %s\n", cursor, labels[choice])
-		}
-
-	}
-
-	if m.loading {
-		return baseView(fmt.Sprintf("%s loading...", m.spinner.View()))
-	}
-
-	if m.data.AssetID != "" {
-		return baseView(m.table.View())
-	}
-
-	return baseView(s)
 }
 
 func Start() {
+	if f, err := tea.LogToFile("debug.log", "help"); err != nil {
+		fmt.Println("Couldn't open a file for logging:", err)
+		os.Exit(1)
+	} else {
+		defer func() {
+			err = f.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
+	}
+
 	log.SetPrefix("tui: ")
 	log.SetFlags(log.Ltime | log.LUTC)
 
