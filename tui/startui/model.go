@@ -48,8 +48,6 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-type ChangeUiMsg bool
-
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
@@ -69,9 +67,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.selected = m.choices[m.cursor]
 
 			if m.selected == "Other" {
-				return m, func() tea.Msg {
-					return ChangeUiMsg(true)
-				}
+				return m, tui.ChangeUiCmd(true)
 			}
 			return m, tea.Batch(
 				tui.SearchCmd(m.selected),

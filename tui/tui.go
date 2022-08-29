@@ -6,6 +6,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	tui "github.com/tomekz/tui/tui/commands"
 	"github.com/tomekz/tui/tui/searchui"
 	"github.com/tomekz/tui/tui/startui"
 )
@@ -41,7 +42,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Println("main.Update", msg, m.currentView)
 	switch msg := msg.(type) {
 
-	case startui.ChangeUiMsg:
+	case tui.ChangeUiMsg:
 		log.Println("ChangeUiMsg", m.currentView)
 		m.currentView = searchView
 	// case searchUi.ChangeUiMsg:
