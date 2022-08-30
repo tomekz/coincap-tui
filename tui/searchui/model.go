@@ -5,6 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/tomekz/tui/tui/commands"
 	"github.com/tomekz/tui/tui/constants"
 )
 
@@ -23,17 +24,13 @@ func New() tea.Model {
 	}
 }
 
-type ChangeUiMsg bool
-
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Println("searchui.Update", msg)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, constants.Keymap.Change):
-			return m, func() tea.Msg {
-				return ChangeUiMsg(true)
-			}
+			return m, commands.ChangeUiCmd(true)
 			// default:
 			// 	m.viewport, cmd = m.viewport.Update(msg)
 		}

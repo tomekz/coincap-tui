@@ -6,7 +6,8 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	tui "github.com/tomekz/tui/tui/commands"
+	"github.com/tomekz/tui/tui/commands"
+	"github.com/tomekz/tui/tui/constants"
 	"github.com/tomekz/tui/tui/searchui"
 	"github.com/tomekz/tui/tui/startui"
 )
@@ -42,7 +43,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Println("main.Update", msg, m.currentView)
 	switch msg := msg.(type) {
 
-	case tui.ChangeUiMsg:
+	case commands.ChangeUiMsg:
 		log.Println("ChangeUiMsg", m.currentView)
 		m.currentView = searchView
 	// case searchUi.ChangeUiMsg:
@@ -73,17 +74,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmd = nCmd
 	}
 
-	// Return the updated model to the Bubble Tea runtime for processing.
-	// Note that we're not returning a command.
 	return m, cmd
 }
+
 func (m Model) View() string {
 	switch m.currentView {
 	case searchView:
-		return m.search.View()
+		return baseView(m.search.View())
 	default:
-		return m.start.View()
+		return baseView(m.start.View())
 	}
+}
+
+func baseView(content string) string {
+	return "Select asset" +
+		"\n\n" +
+		content +
+		"\n\n" + constants.HelpStyle("◀ ↑/k: up • ↓/j: down • enter: submit • q: exit ▶\n")
 }
 
 func Start() {

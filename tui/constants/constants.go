@@ -3,19 +3,28 @@ package constants
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 )
 
 // DocStyle styling for viewports
 var DocStyle = lipgloss.NewStyle().Margin(0, 2)
 
 // HelpStyle styling for help context menu
-var HelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
+// var HelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
 
 // ErrStyle provides styling for error messages
 var ErrStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#bd534b")).Render
 
 // AlertStyle provides styling for alert messages
 var AlertStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("62")).Render
+
+var (
+	color = termenv.EnvColorProfile().Color
+	// HelpStyle styling for help context menu
+	HelpStyle = termenv.Style{}.Foreground(color("241")).Styled
+	// HighligtedStyle styling for help context menu
+	HighlightedStyle = termenv.Style{}.Foreground(color("5")).Styled
+)
 
 type keymap struct {
 	Change key.Binding

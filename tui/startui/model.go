@@ -8,15 +8,9 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/termenv"
 	"github.com/tomekz/tui/data"
-	tui "github.com/tomekz/tui/tui/commands"
-)
-
-var (
-	color       = termenv.EnvColorProfile().Color
-	help        = termenv.Style{}.Foreground(color("241")).Styled
-	highlighted = termenv.Style{}.Foreground(color("5")).Styled
+	"github.com/tomekz/tui/tui/commands"
+	"github.com/tomekz/tui/tui/constants"
 )
 
 var labels = map[string]string{
@@ -67,16 +61,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.selected = m.choices[m.cursor]
 
 			if m.selected == "Other" {
-				return m, tui.ChangeUiCmd(true)
+				return m, commands.ChangeUiCmd(true)
 			}
 			return m, tea.Batch(
-				tui.SearchCmd(m.selected),
+				commands.SearchCmd(m.selected),
 				spinner.Tick,
 			)
 		}
 	case data.DataFetchError:
 		m.error = msg
-	case tui.GotAsset:
+	case commands.GotAsset:
 		m.data = msg.Asset
 		m.loading = false
 
@@ -113,16 +107,9 @@ func New() tea.Model {
 	}
 }
 
-func baseView(content string) string {
-	return "Select asset" +
-		"\n\n" +
-		content +
-		"\n\n" + help("◀ ↑/k: up • ↓/j: down • enter: submit • q: exit ▶\n")
-}
-
 func (m Model) View() string {
 	if m.error != nil {
-		return baseView(fmt.Sprintf("We had some trouble: %v", m.error))
+		return fmt.Sprintf("We had some trouble: %v", m.error)
 	}
 
 	var s string
@@ -132,7 +119,7 @@ func (m Model) View() string {
 		cursor := " "
 		if i == m.cursor {
 			cursor = ">"
-			s += fmt.Sprintf(highlighted("%s %s\n"), cursor, labels[choice])
+			s += fmt.Sprintf(constants.HighlightedStyle("%s %s\n"), cursor, labels[choice])
 		} else {
 			s += fmt.Sprintf("%s %s\n", cursor, labels[choice])
 		}
@@ -140,12 +127,12 @@ func (m Model) View() string {
 	}
 
 	if m.loading {
-		return baseView(fmt.Sprintf("%s loading...", m.spinner.View()))
+		return fmt.Sprintf("%s loading...", m.spinner.View())
 	}
 
 	if m.data.AssetID != "" {
-		return baseView(m.table.View())
+		return m.table.View()
 	}
 
-	return baseView(s)
+	return s
 }
