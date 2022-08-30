@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tomekz/tui/tui/commands"
 	"github.com/tomekz/tui/tui/constants"
@@ -13,22 +14,21 @@ import (
 	"github.com/tomekz/tui/tui/startui"
 )
 
-type sessionState int
+type currentView int
 
 const (
-	startView sessionState = iota
+	startView currentView = iota
 	searchView
 )
 
-// MainModel the main Model of the program; holds other models and bubbles
+// the main Model of the program; holds other models and bubbles
 type Model struct {
-	currentView sessionState
+	currentView currentView
 	start       tea.Model
 	search      tea.Model
 }
 
 func (m Model) Init() tea.Cmd {
-	// Just return `nil`, which means "no I/O right now, please."
 	return nil
 }
 
@@ -42,6 +42,7 @@ func initialModel() Model {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	log.Println("main.Update", msg, m.currentView)
 	switch msg := msg.(type) {
 
@@ -52,29 +53,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.search = searchui.New()
 		} else {
 			m.currentView = searchView
+			cmds = append(cmds, textinput.Blink)
 		}
 
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, constants.Keymap.Restart):
 			return m, commands.ChangeUiCmd("restart")
-		case msg.String() == "ctrl+c":
+		case key.Matches(msg, constants.Keymap.Quit):
 			return m, tea.Quit
 		}
 	}
 
 	switch m.currentView {
 	case startView:
-		s, c := m.start.Update(msg)
-		m.start = s
-		cmd = c
+		newStartModel, newStartCmd := m.start.Update(msg)
+		m.start = newStartModel
+		cmd = newStartCmd
 	case searchView:
-		sc, nCmd := m.search.Update(msg)
-		m.search = sc
-		cmd = nCmd
+		newSearchModel, newSearchCmd := m.search.Update(msg)
+		m.search = newSearchModel
+		cmd = newSearchCmd
 	}
-
-	return m, cmd
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
@@ -90,7 +92,12 @@ func baseView(content string) string {
 	return "Select asset" +
 		"\n\n" +
 		content +
-		"\n\n" + constants.HelpStyle("◀ ↑: up • ↓: down • enter: submit • esc: restart • ctrl+c: exit ▶\n")
+		"\n\n" + constants.HelpStyle(
+		fmt.Sprintf("◀ ↑: up • ↓: down • enter: %v • esc: %v • ctrl+c: %v ▶ ",
+			constants.Keymap.Enter.Help().Desc,
+			constants.Keymap.Restart.Help().Desc,
+			constants.Keymap.Quit.Help().Desc,
+		))
 }
 
 func Start() {

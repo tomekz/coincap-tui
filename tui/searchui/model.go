@@ -21,6 +21,7 @@ type model struct {
 	table     table.Model
 	loading   bool
 	data      data.Asset
+	error     error
 }
 
 func (m model) Init() tea.Cmd {
@@ -53,9 +54,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, constants.Keymap.Change):
 			return m, commands.ChangeUiCmd("start")
-			// default:
-			// 	m.viewport, cmd = m.viewport.Update(msg)
 		case key.Matches(msg, constants.Keymap.Enter):
+			m.loading = true
+			m.error = nil
 			return m, tea.Batch(
 				commands.SearchCmd(m.textInput.Value()),
 				spinner.Tick,
@@ -69,6 +70,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		rows = append(rows, table.SimpleRow{m.data.AssetID, m.data.Name, m.data.PriceUsd})
 		m.table.SetRows(rows)
 		return m, nil
+	case data.DataFetchError:
+		m.error = msg
 	}
 
 	if m.loading {
@@ -78,11 +81,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	m.textInput, cmd = m.textInput.Update(msg)
 
-	// Return the updated model to the Bubble Tea runtime for processing.
-	// Note that we're not returning a command.
 	return m, cmd
 }
+
 func (m model) View() string {
+	if m.error != nil {
+		return fmt.Sprintf("We had some trouble: %v", m.error)
+	}
 
 	if m.loading {
 		return fmt.Sprintf("%s loading...", m.spinner.View())

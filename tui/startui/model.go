@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	table "github.com/calyptia/go-bubble-table"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -47,17 +48,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "up":
+		switch {
+		case msg.String() == "up":
 			if m.cursor > 0 {
 				m.cursor--
 			}
-		case "down":
+		case msg.String() == "down":
 			if m.cursor < len(m.choices)-1 {
 				m.cursor++
 			}
-		case "enter", " ":
+		case key.Matches(msg, constants.Keymap.Enter):
 			m.loading = true
+			m.error = nil
 			m.selected = m.choices[m.cursor]
 
 			if m.selected == "Other" {
@@ -89,7 +91,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func New() tea.Model {
-
 	textInput := textinput.New()
 	textInput.Placeholder = "Type your question here"
 	textInput.Focus()

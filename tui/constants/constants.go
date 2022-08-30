@@ -2,21 +2,8 @@ package constants
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 )
-
-// DocStyle styling for viewports
-var DocStyle = lipgloss.NewStyle().Margin(0, 2)
-
-// HelpStyle styling for help context menu
-// var HelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
-
-// ErrStyle provides styling for error messages
-var ErrStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#bd534b")).Render
-
-// AlertStyle provides styling for alert messages
-var AlertStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("62")).Render
 
 var (
 	color = termenv.EnvColorProfile().Color
@@ -30,8 +17,7 @@ type keymap struct {
 	Change  key.Binding
 	Enter   key.Binding
 	Restart key.Binding
-	Delete  key.Binding
-	Back    key.Binding
+	Quit    key.Binding
 }
 
 // Keymap reusable key mappings shared across models
@@ -48,12 +34,8 @@ var Keymap = keymap{
 		key.WithKeys("esc"),
 		key.WithHelp("esc", "restart"),
 	),
-	Delete: key.NewBinding(
-		key.WithKeys("d"),
-		key.WithHelp("d", "delete"),
-	),
-	Back: key.NewBinding(
-		key.WithKeys("esc"),
-		key.WithHelp("esc", "back"),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
 	),
 }
