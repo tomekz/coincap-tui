@@ -36,6 +36,7 @@ func initialModel() Model {
 	return Model{
 		currentView: startView,
 		start:       startui.New(),
+		search:      searchui.New(),
 	}
 }
 
@@ -51,17 +52,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.currentView = searchView
 		}
-		// case searchUi.ChangeUiMsg:
-		// 	log.Println("ChangeUiMsg", m.state)
-		// 	m.state = barUi
 
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, constants.Keymap.Restart):
 			return m, commands.ChangeUiCmd("restart")
 		case msg.String() == "ctrl+c":
-			return m, tea.Quit
-		case msg.String() == "q":
 			return m, tea.Quit
 		}
 	}
@@ -72,7 +68,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.start = s
 		cmd = c
 	case searchView:
-		m.search = searchui.New()
 		sc, nCmd := m.search.Update(msg)
 		m.search = sc
 		cmd = nCmd
@@ -94,7 +89,7 @@ func baseView(content string) string {
 	return "Select asset" +
 		"\n\n" +
 		content +
-		"\n\n" + constants.HelpStyle("◀ ↑/k: up • ↓/j: down • enter: submit • r: restart • q: exit ▶\n")
+		"\n\n" + constants.HelpStyle("◀ ↑: up • ↓: down • enter: submit • esc: restart • ctrl+c: exit ▶\n")
 }
 
 func Start() {

@@ -45,8 +45,8 @@ var Keymap = keymap{
 		key.WithHelp("enter", "select"),
 	),
 	Restart: key.NewBinding(
-		key.WithKeys("r"),
-		key.WithHelp("r", "restart"),
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "restart"),
 	),
 	Delete: key.NewBinding(
 		key.WithKeys("d"),
