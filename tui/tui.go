@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tomekz/tui/tui/commands"
 	"github.com/tomekz/tui/tui/constants"
@@ -44,20 +45,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case commands.ChangeUiMsg:
-		log.Println("ChangeUiMsg", m.currentView)
-		m.currentView = searchView
-	// case searchUi.ChangeUiMsg:
-	// 	log.Println("ChangeUiMsg", m.state)
-	// 	m.state = barUi
+		if msg == "restart" {
+			m.currentView = startView
+			m.start = startui.New()
+		} else {
+			m.currentView = searchView
+		}
+		// case searchUi.ChangeUiMsg:
+		// 	log.Println("ChangeUiMsg", m.state)
+		// 	m.state = barUi
 
-	// Is it a key press?
 	case tea.KeyMsg:
-
-		// Cool, what was the actual key pressed?
-		switch msg.String() {
-
-		// These keys should exit the program.
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, constants.Keymap.Restart):
+			return m, commands.ChangeUiCmd("restart")
+		case msg.String() == "ctrl+c":
+			return m, tea.Quit
+		case msg.String() == "q":
 			return m, tea.Quit
 		}
 	}
@@ -90,7 +94,7 @@ func baseView(content string) string {
 	return "Select asset" +
 		"\n\n" +
 		content +
-		"\n\n" + constants.HelpStyle("◀ ↑/k: up • ↓/j: down • enter: submit • q: exit ▶\n")
+		"\n\n" + constants.HelpStyle("◀ ↑/k: up • ↓/j: down • enter: submit • r: restart • q: exit ▶\n")
 }
 
 func Start() {

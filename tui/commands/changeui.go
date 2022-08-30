@@ -2,9 +2,9 @@ package commands
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type ChangeUiMsg bool
+type ChangeUiMsg string
 
-func ChangeUiCmd(value bool) tea.Cmd {
+func ChangeUiCmd(value string) tea.Cmd {
 	return func() tea.Msg {
 		return ChangeUiMsg(value)
 	}

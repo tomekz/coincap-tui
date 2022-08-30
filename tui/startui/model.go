@@ -61,7 +61,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.selected = m.choices[m.cursor]
 
 			if m.selected == "Other" {
-				return m, commands.ChangeUiCmd(true)
+				return m, commands.ChangeUiCmd("search")
 			}
 			return m, tea.Batch(
 				commands.SearchCmd(m.selected),

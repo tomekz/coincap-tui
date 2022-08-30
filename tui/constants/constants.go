@@ -27,11 +27,11 @@ var (
 )
 
 type keymap struct {
-	Change key.Binding
-	Enter  key.Binding
-	Rename key.Binding
-	Delete key.Binding
-	Back   key.Binding
+	Change  key.Binding
+	Enter   key.Binding
+	Restart key.Binding
+	Delete  key.Binding
+	Back    key.Binding
 }
 
 // Keymap reusable key mappings shared across models
@@ -44,9 +44,9 @@ var Keymap = keymap{
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "select"),
 	),
-	Rename: key.NewBinding(
+	Restart: key.NewBinding(
 		key.WithKeys("r"),
-		key.WithHelp("r", "rename"),
+		key.WithHelp("r", "restart"),
 	),
 	Delete: key.NewBinding(
 		key.WithKeys("d"),

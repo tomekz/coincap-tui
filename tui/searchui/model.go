@@ -30,7 +30,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, constants.Keymap.Change):
-			return m, commands.ChangeUiCmd(true)
+			return m, commands.ChangeUiCmd("start")
 			// default:
 			// 	m.viewport, cmd = m.viewport.Update(msg)
 		}
