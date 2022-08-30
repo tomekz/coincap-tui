@@ -49,6 +49,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg == "restart" {
 			m.currentView = startView
 			m.start = startui.New()
+			m.search = searchui.New()
 		} else {
 			m.currentView = searchView
 		}
