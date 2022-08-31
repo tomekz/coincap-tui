@@ -8,6 +8,8 @@ Features:
 - fetch crypto assets data from [ coinapi ](https://www.coinapi.io/) REST API
 - display results in tabular format
 
+  <img src="demo.gif" alt="demo" />
+
 # how to run
 
 ```sh

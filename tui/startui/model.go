@@ -77,7 +77,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		rows := []table.Row{}
-		rows = append(rows, table.SimpleRow{m.data.AssetID, m.data.Name, m.data.PriceUsd})
+		rows = append(rows, table.SimpleRow{m.data.AssetID, m.data.Name, fmt.Sprintf("%.2f$", m.data.PriceUsd)})
 		m.table.SetRows(rows)
 		return m, nil
 	}
