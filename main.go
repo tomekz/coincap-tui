@@ -40,7 +40,7 @@ func main() {
 	log.SetPrefix("tui: ")
 	log.SetFlags(log.Ltime | log.LUTC)
 
-	p := tea.NewProgram(ui.Init())
+	p := tea.NewProgram(ui.Init(), tea.WithAltScreen())
 	_, err := p.Run()
 	if err != nil {
 		log.Fatal(err)
