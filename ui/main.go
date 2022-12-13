@@ -3,9 +3,11 @@ package ui
 import (
 	"log"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/tomekz/tui/coincap"
 )
 
@@ -14,7 +16,7 @@ type keymap struct {
 }
 
 func Init() tea.Model {
-	keymap := &keymap{
+	keymap := keymap{
 		Exit: key.NewBinding(
 			key.WithKeys("ctrl+c"),
 			key.WithHelp("ctrl+c", "exit"),
@@ -39,13 +41,15 @@ func Init() tea.Model {
 	return mainModel{
 		keymap: keymap,
 		table:  table,
+		help:   help.New(),
 	}
 }
 
 type mainModel struct {
-	keymap *keymap
+	keymap keymap
 	error  error
 	table  table.Model
+	help   help.Model
 }
 
 func (m mainModel) Init() tea.Cmd {
@@ -90,7 +94,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m mainModel) View() string {
-	return m.table.View()
+	return baseStyle.Render(m.table.View() + "\n\n" + m.help.View(m.keymap))
 }
 
 // ======= //
@@ -120,3 +124,20 @@ func (e errMsg) Error() string { return e.error.Error() }
 // ======= //
 // models  //
 // ======= //
+// Help functions. Used in creating the help menu
+func (k keymap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Exit}
+}
+
+func (k keymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Exit},
+	}
+}
+
+// ======= //
+// styles  //
+// ======= //
+var baseStyle = lipgloss.NewStyle().
+	BorderStyle(lipgloss.NormalBorder()).
+	BorderForeground(lipgloss.Color("240"))
