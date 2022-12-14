@@ -7,37 +7,38 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/tomekz/tui/coincap"
 )
 
 type keymap struct {
 	Exit key.Binding
+	Help key.Binding
 }
 
 func Init() tea.Model {
+	columns := []table.Column{
+		{Title: "Rank", Width: 4},
+		{Title: "Name", Width: 20},
+		{Title: "Symbol", Width: 6},
+		{Title: "Price USD", Width: 10},
+		{Title: "Change (24hr)", Width: 10},
+		{Title: "Supply", Width: 10},
+		{Title: "Max Supply", Width: 10},
+		{Title: "Market Cap", Width: 10},
+		{Title: "Volume (24hr)", Width: 10},
+	}
+
+	table := table.New(table.WithColumns(columns), table.WithFocused(true))
 	keymap := keymap{
 		Exit: key.NewBinding(
 			key.WithKeys("ctrl+c"),
 			key.WithHelp("ctrl+c", "exit"),
 		),
+		Help: key.NewBinding(
+			key.WithKeys("?"),
+			key.WithHelp("?", "show help"),
+		),
 	}
-	columns := []table.Column{
-		{Title: "ID", Width: 5},
-		{Title: "Rank", Width: 10},
-		{Title: "Symbol", Width: 10},
-		{Title: "Name", Width: 10},
-		{Title: "Supply", Width: 10},
-		{Title: "MaxSupply", Width: 10},
-		{Title: "MarketCapUsd", Width: 10},
-		{Title: "VolumeUsd24Hr", Width: 10},
-		{Title: "PriceUsd", Width: 10},
-		{Title: "ChangePercent24Hr", Width: 10},
-		{Title: "Vwap24Hr", Width: 10},
-	}
-
-	table := table.New(table.WithColumns(columns), table.WithFocused(true))
-
 	return mainModel{
 		keymap: keymap,
 		table:  table,
@@ -60,25 +61,30 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.help.Width = msg.Width
+
 	case tea.KeyMsg:
 		if key.Matches(msg, m.keymap.Exit) {
 			return m, tea.Quit
 		}
+		if key.Matches(msg, m.keymap.Help) {
+			m.help.ShowAll = !m.help.ShowAll
+		}
+
 	case getAssetsMsg:
 		rows := make([]table.Row, len(msg.assets))
 		for i, asset := range msg.assets {
 			rows[i] = []string{
-				asset.ID,
 				asset.Rank,
-				asset.Symbol,
 				asset.Name,
+				asset.Symbol,
+				asset.PriceUsd,
+				asset.ChangePercent24Hr,
 				asset.Supply,
 				asset.MaxSupply,
 				asset.MarketCapUsd,
 				asset.VolumeUsd24Hr,
-				asset.PriceUsd,
-				asset.ChangePercent24Hr,
-				asset.Vwap24Hr,
 			}
 		}
 		m.table.SetRows(rows)
@@ -94,6 +100,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m mainModel) View() string {
+
 	return baseStyle.Render(m.table.View() + "\n\n" + m.help.View(m.keymap))
 }
 
@@ -126,18 +133,20 @@ func (e errMsg) Error() string { return e.error.Error() }
 // ======= //
 // Help functions. Used in creating the help menu
 func (k keymap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Exit}
+	return []key.Binding{
+		k.Help,
+		k.Exit,
+	}
 }
 
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
+		{table.DefaultKeyMap().GotoTop},
+		{table.DefaultKeyMap().GotoBottom},
+		{table.DefaultKeyMap().PageUp},
+		{table.DefaultKeyMap().PageDown},
+		{table.DefaultKeyMap().HalfPageUp},
+		{table.DefaultKeyMap().HalfPageDown},
 		{k.Exit},
 	}
 }
-
-// ======= //
-// styles  //
-// ======= //
-var baseStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("240"))
