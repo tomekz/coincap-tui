@@ -8,17 +8,17 @@ import (
 )
 
 type Asset struct {
-	ID                string `json:"id"`
-	Rank              string `json:"rank"`
-	Symbol            string `json:"symbol"`
-	Name              string `json:"name"`
-	Supply            string `json:"supply"`
-	MaxSupply         string `json:"maxSupply"`
-	MarketCapUsd      string `json:"marketCapUsd"`
-	VolumeUsd24Hr     string `json:"volumeUsd24Hr"`
-	PriceUsd          string `json:"priceUsd"`
-	ChangePercent24Hr string `json:"changePercent24Hr"`
-	Vwap24Hr          string `json:"vwap24Hr"`
+	ID                string  `json:"id"`
+	Rank              int64   `json:"rank,string"`
+	Symbol            string  `json:"symbol"`
+	Name              string  `json:"name"`
+	Supply            float64 `json:"supply,string"`
+	MaxSupply         float64 `json:"maxSupply,string"`
+	MarketCapUsd      float64 `json:"marketCapUsd,string"`
+	VolumeUsd24Hr     float64 `json:"volumeUsd24Hr,string"`
+	PriceUsd          float64 `json:"priceUsd,string"`
+	ChangePercent24Hr float64 `json:"changePercent24Hr,string"`
+	Vwap24Hr          float64 `json:"vwap24Hr,string"`
 }
 
 type GetAssetsResult struct {

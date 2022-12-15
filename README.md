@@ -1,19 +1,38 @@
-# tui
-
-A small terminal UI app written while learning GO
+## tui
+Tui let's you check crypto prices in your terminal.
 
 Features:
 
 - nice UI with [bubble-tea](https://github.com/charmbracelet/bubbletea)
-- fetch crypto assets data from [ coinapi ](https://www.coinapi.io/) REST API
+- fetch crypto assets data from [ coincap ](https://docs.coincap.io/) REST API
 - display results in tabular format
 
-  <img src="demo.gif" alt="demo" />
+## :keyboard: Keybindings
 
-# how to run
+|      Key      |                Description                |
+| :-----------: | :---------------------------------------: |
+|  `Ctrl+C`     |           Exit from application           |
+| `g, home`     |         Go to top                         |
+| `G, end`      |        Go to end                          |
+| `b, pgup`     |             Page up                       |
+|  `f, pgdn`    |              Page down                    |
+|    `u`        |      1/2 page up                          |
+|      `d`      |                1/2 page down              |
 
-```sh
- API_KEY=0B5A90AF-892D-4917-8A4F-5B20D91846E0 go run main.go
-```
+## CLI options
 
-> If the request limit for my `API_KEY` is exhausted you will have to get your own free [ coinapi ](https://www.coinapi.io/) api key
+  
+  - **`--help`**: Show help text
+    ```shell
+    $ tui --help
+    ```
+  - **`--refresh`**: Enable auto refresh. (Every 10 seconds)
+     ```shell
+    $ tui --refresh
+    ```
+ 
+
+##  Acknowledgments
+
+Inspired by [tinance](https://github.com/Alcadramin/tinance)
+

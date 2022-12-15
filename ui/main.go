@@ -2,6 +2,7 @@ package ui
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -21,11 +22,11 @@ func Init() tea.Model {
 		{Title: "Name", Width: 20},
 		{Title: "Symbol", Width: 6},
 		{Title: "Price USD", Width: 10},
-		{Title: "Change (24hr)", Width: 10},
+		{Title: "Change (24hr)", Width: 15},
 		{Title: "Supply", Width: 10},
 		{Title: "Max Supply", Width: 10},
 		{Title: "Market Cap", Width: 10},
-		{Title: "Volume (24hr)", Width: 10},
+		{Title: "Volume (24hr)", Width: 15},
 	}
 
 	table := table.New(table.WithColumns(columns), table.WithFocused(true))
@@ -74,17 +75,18 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case getAssetsMsg:
 		rows := make([]table.Row, len(msg.assets))
+		log.Println(msg.assets)
 		for i, asset := range msg.assets {
 			rows[i] = []string{
-				asset.Rank,
+				strconv.FormatInt(asset.Rank, 10),
 				asset.Name,
 				asset.Symbol,
-				asset.PriceUsd,
-				asset.ChangePercent24Hr,
-				asset.Supply,
-				asset.MaxSupply,
-				asset.MarketCapUsd,
-				asset.VolumeUsd24Hr,
+				strconv.FormatFloat(asset.PriceUsd, 'f', 2, 64),
+				strconv.FormatFloat(asset.ChangePercent24Hr, 'f', 4, 64),
+				formatFloat(asset.Supply),
+				formatFloat(asset.MaxSupply),
+				formatFloat(asset.MarketCapUsd),
+				formatFloat(asset.VolumeUsd24Hr),
 			}
 		}
 		m.table.SetRows(rows)
@@ -131,7 +133,6 @@ func (e errMsg) Error() string { return e.error.Error() }
 // ======= //
 // models  //
 // ======= //
-// Help functions. Used in creating the help menu
 func (k keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		k.Help,
