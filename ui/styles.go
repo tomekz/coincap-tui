@@ -28,9 +28,8 @@ var (
 	secondaryColor = lipgloss.Color("#504945")
 
 	tableStyles = lipgloss.NewStyle().
-		// Width(125).Align(lipgloss.Center).Height(30).
-		BorderStyle(lipgloss.NormalBorder()).
-		Foreground(primaryColor)
+			BorderStyle(lipgloss.NormalBorder()).
+			Foreground(primaryColor)
 
 	helpStyles = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
@@ -38,3 +37,11 @@ var (
 			Padding(1).
 			Margin(0)
 )
+
+func calculateTableDimensions(width int, height int) (int, int) {
+	tableWidth := width - 2 // 2 for padding
+	tableHeight := 20       // 20  rows + 5 for padding
+
+	return tableWidth, tableHeight
+
+}

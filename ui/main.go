@@ -63,6 +63,8 @@ type mainModel struct {
 	table     table.Model
 	help      help.Model
 	spinner   spinner.Model
+	width     int
+	height    int
 	isLoading bool
 }
 
@@ -74,6 +76,8 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		m.height = msg.Height
+		m.width = msg.Width
 		m.help.Width = msg.Width
 
 	case tea.KeyMsg:
@@ -82,6 +86,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if key.Matches(msg, m.keymap.Help) {
 			m.help.ShowAll = !m.help.ShowAll
+
 		}
 		if key.Matches(msg, m.keymap.Refresh) {
 			m.isLoading = true
@@ -124,15 +129,22 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m mainModel) View() string {
+	tWidth, tHeight := calculateTableDimensions(m.width, m.height)
 	var v string
 	if m.isLoading {
+		tHeight += 1 // fix for table flickering
+		tableStyles.Align(lipgloss.Center)
 		v += m.spinner.View()
 	} else {
+		tableStyles.UnsetAlign()
 		v += m.table.View()
 	}
 	return lipgloss.JoinVertical(lipgloss.Center,
-		tableStyles.Render(v),
-		helpStyles.Render(m.help.View(m.keymap)),
+		tableStyles.
+			Width(tWidth).
+			Height(tHeight).
+			Render(v),
+		helpStyles.Align(lipgloss.Center).Width(tWidth).Render(m.help.View(m.keymap)),
 	)
 }
 
@@ -173,8 +185,7 @@ func (k keymap) ShortHelp() []key.Binding {
 
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{table.DefaultKeyMap().GotoTop, table.DefaultKeyMap().GotoBottom, table.DefaultKeyMap().PageUp},
-		{table.DefaultKeyMap().PageDown, table.DefaultKeyMap().HalfPageUp, table.DefaultKeyMap().HalfPageDown},
-		{k.Refresh, k.Exit},
+		{table.DefaultKeyMap().GotoTop, table.DefaultKeyMap().GotoBottom, table.DefaultKeyMap().PageUp, table.DefaultKeyMap().PageDown},
+		{table.DefaultKeyMap().HalfPageUp, table.DefaultKeyMap().HalfPageDown, k.Refresh, k.Exit},
 	}
 }
