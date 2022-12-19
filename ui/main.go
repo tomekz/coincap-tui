@@ -6,14 +6,17 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/tomekz/tui/coincap"
 )
 
 type keymap struct {
-	Exit key.Binding
-	Help key.Binding
+	Exit    key.Binding
+	Help    key.Binding
+	Refresh key.Binding
 }
 
 func Init() tea.Model {
@@ -39,28 +42,36 @@ func Init() tea.Model {
 			key.WithKeys("?"),
 			key.WithHelp("?", "show help"),
 		),
+		Refresh: key.NewBinding(
+			key.WithKeys("r"),
+			key.WithHelp("r", "refresh"),
+		),
 	}
+	spinner := spinner.New()
 	return mainModel{
-		keymap: keymap,
-		table:  table,
-		help:   help.New(),
+		keymap:    keymap,
+		table:     table,
+		help:      help.New(),
+		spinner:   spinner,
+		isLoading: true,
 	}
 }
 
 type mainModel struct {
-	keymap keymap
-	error  error
-	table  table.Model
-	help   help.Model
+	keymap    keymap
+	error     error
+	table     table.Model
+	help      help.Model
+	spinner   spinner.Model
+	isLoading bool
 }
 
 func (m mainModel) Init() tea.Cmd {
-	return getAssetsCmd()
+	return tea.Batch(m.spinner.Tick, getAssetsCmd())
 }
 
 func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
-	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.help.Width = msg.Width
@@ -71,6 +82,10 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if key.Matches(msg, m.keymap.Help) {
 			m.help.ShowAll = !m.help.ShowAll
+		}
+		if key.Matches(msg, m.keymap.Refresh) {
+			m.isLoading = true
+			return m, getAssetsCmd()
 		}
 
 	case getAssetsMsg:
@@ -90,20 +105,35 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		m.table.SetRows(rows)
+		m.isLoading = false
 
 	case errMsg:
 		log.Println(msg.error)
 		m.error = msg.error
-	}
+	default:
+		var spinnerUpdateCmd tea.Cmd
+		m.spinner, spinnerUpdateCmd = m.spinner.Update(msg)
+		cmds = append(cmds, spinnerUpdateCmd)
 
-	m.table, cmd = m.table.Update(msg)
-	cmds = append(cmds, cmd)
+	}
+	var tableUpdateCmd tea.Cmd
+	m.table, tableUpdateCmd = m.table.Update(msg)
+	cmds = append(cmds, tableUpdateCmd)
+
 	return m, tea.Batch(cmds...)
 }
 
 func (m mainModel) View() string {
-
-	return baseStyle.Render(m.table.View() + "\n\n" + m.help.View(m.keymap))
+	var v string
+	if m.isLoading {
+		v += m.spinner.View()
+	} else {
+		v += m.table.View()
+	}
+	return lipgloss.JoinVertical(lipgloss.Center,
+		tableStyles.Render(v),
+		helpStyles.Render(m.help.View(m.keymap)),
+	)
 }
 
 // ======= //
@@ -136,18 +166,15 @@ func (e errMsg) Error() string { return e.error.Error() }
 func (k keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		k.Help,
+		k.Refresh,
 		k.Exit,
 	}
 }
 
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{table.DefaultKeyMap().GotoTop},
-		{table.DefaultKeyMap().GotoBottom},
-		{table.DefaultKeyMap().PageUp},
-		{table.DefaultKeyMap().PageDown},
-		{table.DefaultKeyMap().HalfPageUp},
-		{table.DefaultKeyMap().HalfPageDown},
-		{k.Exit},
+		{table.DefaultKeyMap().GotoTop, table.DefaultKeyMap().GotoBottom, table.DefaultKeyMap().PageUp},
+		{table.DefaultKeyMap().PageDown, table.DefaultKeyMap().HalfPageUp, table.DefaultKeyMap().HalfPageDown},
+		{k.Refresh, k.Exit},
 	}
 }

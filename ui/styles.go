@@ -24,7 +24,17 @@ var (
 	// errorForegroundPadded = lipgloss.NewStyle().Padding(4).Foreground(errorColor)
 	// separator             = secondaryForeground.Render(" • ")
 	// listStyle             = lipgloss.NewStyle().Margin(6, 2, 0, 2)
-	baseStyle = lipgloss.NewStyle().
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("240"))
+	primaryColor   = lipgloss.Color("#EBDBB2")
+	secondaryColor = lipgloss.Color("#504945")
+
+	tableStyles = lipgloss.NewStyle().
+		// Width(125).Align(lipgloss.Center).Height(30).
+		BorderStyle(lipgloss.NormalBorder()).
+		Foreground(primaryColor)
+
+	helpStyles = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("240")).
+			Padding(1).
+			Margin(0)
 )
