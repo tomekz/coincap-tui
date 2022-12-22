@@ -32,7 +32,9 @@ func Init() tea.Model {
 		{Title: "Volume (24hr)", Width: 15},
 	}
 
-	table := table.New(table.WithColumns(columns), table.WithFocused(true))
+	t := table.New(table.WithColumns(columns), table.WithFocused(true))
+	s := table.DefaultStyles()
+	t.SetStyles(TableStyles(s))
 	keymap := keymap{
 		Exit: key.NewBinding(
 			key.WithKeys("ctrl+c"),
@@ -50,7 +52,7 @@ func Init() tea.Model {
 	spinner := spinner.New()
 	return mainModel{
 		keymap:    keymap,
-		table:     table,
+		table:     t,
 		help:      help.New(),
 		spinner:   spinner,
 		isLoading: true,

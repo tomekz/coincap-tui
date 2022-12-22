@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -44,4 +45,20 @@ func calculateTableDimensions(width int, height int) (int, int) {
 
 	return tableWidth, tableHeight
 
+}
+
+func TableStyles(baseStyles table.Styles) table.Styles {
+	baseStyles.Header = baseStyles.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		Foreground(secondaryColor).
+		Background(primaryColor).
+		BorderBottom(true)
+	baseStyles.Selected = baseStyles.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("124")).
+		Bold(false)
+	// baseStyles.Cell = baseStyles.Cell.BorderBottom(true).
+	// 	BorderStyle(lipgloss.NormalBorder())
+	return baseStyles
 }
