@@ -14,3 +14,12 @@ func formatFloat(f float64) string {
 		return strconv.FormatFloat(f, 'f', 1, 64)
 	}
 }
+
+// fomat percentage to string
+func formatPercent(f float64) string {
+	if f > 0 {
+		return strconv.FormatFloat(f, 'f', 2, 64) + "%"
+	} else {
+		return strconv.FormatFloat(f, 'f', 2, 64) + "%"
+	}
+}

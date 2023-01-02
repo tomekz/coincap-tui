@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/guptarohit/asciigraph"
 	"github.com/tomekz/tui/coincap"
 )
 
@@ -17,6 +18,7 @@ type keymap struct {
 	Exit    key.Binding
 	Help    key.Binding
 	Refresh key.Binding
+	Select  key.Binding
 }
 
 func Init() tea.Model {
@@ -35,6 +37,7 @@ func Init() tea.Model {
 	t := table.New(table.WithColumns(columns), table.WithFocused(true))
 	s := table.DefaultStyles()
 	t.SetStyles(TableStyles(s))
+
 	keymap := keymap{
 		Exit: key.NewBinding(
 			key.WithKeys("ctrl+c"),
@@ -48,26 +51,35 @@ func Init() tea.Model {
 			key.WithKeys("r"),
 			key.WithHelp("r", "refresh"),
 		),
+		Select: key.NewBinding(
+			key.WithKeys("enter"),
+			key.WithHelp("enter", "select"),
+		),
 	}
 	spinner := spinner.New()
+
 	return mainModel{
-		keymap:    keymap,
-		table:     t,
-		help:      help.New(),
-		spinner:   spinner,
-		isLoading: true,
+		keymap:        keymap,
+		table:         t,
+		help:          help.New(),
+		spinner:       spinner,
+		isLoading:     true,
+		assethHistory: []float64{},
+		showGraph:     false,
 	}
 }
 
 type mainModel struct {
-	keymap    keymap
-	error     error
-	table     table.Model
-	help      help.Model
-	spinner   spinner.Model
-	width     int
-	height    int
-	isLoading bool
+	keymap        keymap
+	error         error
+	table         table.Model
+	help          help.Model
+	spinner       spinner.Model
+	width         int
+	height        int
+	isLoading     bool
+	assethHistory []float64
+	showGraph     bool
 }
 
 func (m mainModel) Init() tea.Cmd {
@@ -91,20 +103,26 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		}
 		if key.Matches(msg, m.keymap.Refresh) {
+			m.error = nil
 			m.isLoading = true
+			m.showGraph = false
 			return m, getAssetsCmd()
+		}
+		if key.Matches(msg, m.keymap.Select) {
+			m.isLoading = true
+			m.showGraph = true
+			return m, getAssetHistoryCmd(m.table.SelectedRow()[1])
 		}
 
 	case getAssetsMsg:
 		rows := make([]table.Row, len(msg.assets))
-		log.Println(msg.assets)
 		for i, asset := range msg.assets {
 			rows[i] = []string{
 				strconv.FormatInt(asset.Rank, 10),
-				asset.Name,
+				asset.ID,
 				asset.Symbol,
 				strconv.FormatFloat(asset.PriceUsd, 'f', 2, 64),
-				strconv.FormatFloat(asset.ChangePercent24Hr, 'f', 4, 64),
+				formatPercent(asset.ChangePercent24Hr),
 				formatFloat(asset.Supply),
 				formatFloat(asset.MaxSupply),
 				formatFloat(asset.MarketCapUsd),
@@ -114,8 +132,15 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.table.SetRows(rows)
 		m.isLoading = false
 
+	case getAssetHistoryMsg:
+		assetHistory := make([]float64, len(msg.assetHistory))
+		for i, ah := range msg.assetHistory {
+			assetHistory[i] = ah.PriceUsd
+		}
+		m.assethHistory = assetHistory
+		m.isLoading = false
+
 	case errMsg:
-		log.Println(msg.error)
 		m.error = msg.error
 	default:
 		var spinnerUpdateCmd tea.Cmd
@@ -131,18 +156,32 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m mainModel) View() string {
+
 	tWidth, tHeight := calculateTableDimensions(m.width, m.height)
-	var v string
+	var v = m.table.View()
+
 	if m.isLoading {
-		tHeight += 1 // fix for table flickering
-		tableStyles.Align(lipgloss.Center)
-		v += m.spinner.View()
-	} else {
-		tableStyles.UnsetAlign()
-		v += m.table.View()
+		v = m.spinner.View()
 	}
+
+	if len(m.assethHistory) > 0 && m.showGraph {
+		graph := asciigraph.Plot(
+			m.assethHistory,
+			asciigraph.Height(tHeight),
+			asciigraph.Width(tWidth),
+			asciigraph.Caption("Price History"),
+			asciigraph.CaptionColor(asciigraph.Red),
+		)
+		v = graph
+	}
+
+	if m.error != nil {
+		v = fmt.Sprintf("Error: %s", m.error)
+	}
+
 	return lipgloss.JoinVertical(lipgloss.Center,
 		tableStyles.
+			Align(lipgloss.Center).
 			Width(tWidth).
 			Height(tHeight).
 			Render(v),
@@ -163,11 +202,25 @@ func getAssetsCmd() tea.Cmd {
 	}
 }
 
+func getAssetHistoryCmd(assetId string) tea.Cmd {
+	return func() tea.Msg {
+		assetHistory, err := coincap.GetAssetHistory(assetId)
+		if err != nil {
+			return errMsg{err}
+		}
+		return getAssetHistoryMsg{assetHistory: assetHistory}
+	}
+}
+
 // ======= //
 // msgs    //
 // ======= //
 type getAssetsMsg struct {
 	assets []coincap.Asset
+}
+
+type getAssetHistoryMsg struct {
+	assetHistory []coincap.AssetHistory
 }
 
 type errMsg struct{ error }
