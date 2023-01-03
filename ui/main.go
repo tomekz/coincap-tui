@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -19,6 +20,7 @@ type keymap struct {
 	Help    key.Binding
 	Refresh key.Binding
 	Select  key.Binding
+	GoBack  key.Binding
 }
 
 func Init() tea.Model {
@@ -54,6 +56,10 @@ func Init() tea.Model {
 		Select: key.NewBinding(
 			key.WithKeys("enter"),
 			key.WithHelp("enter", "select"),
+		),
+		GoBack: key.NewBinding(
+			key.WithKeys("b"),
+			key.WithHelp("b", "go back"),
 		),
 	}
 	spinner := spinner.New()
@@ -111,7 +117,17 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, m.keymap.Select) {
 			m.isLoading = true
 			m.showGraph = true
+			m.assethHistory = []float64{}
+
 			return m, getAssetHistoryCmd(m.table.SelectedRow()[1])
+		}
+		if key.Matches(msg, m.keymap.GoBack) {
+			log.Println("go back")
+			m.showGraph = false
+			m.error = nil
+			m.assethHistory = []float64{}
+			m.isLoading = false
+			return m, nil
 		}
 
 	case getAssetsMsg:
@@ -179,9 +195,10 @@ func (m mainModel) View() string {
 		v = fmt.Sprintf("Error: %s", m.error)
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Center,
+	return lipgloss.JoinVertical(
+		lipgloss.Center,
 		tableStyles.
-			Align(lipgloss.Center).
+			// Align(lipgloss.Center).
 			Width(tWidth).
 			Height(tHeight).
 			Render(v),
@@ -235,6 +252,8 @@ func (k keymap) ShortHelp() []key.Binding {
 		k.Help,
 		k.Refresh,
 		k.Exit,
+		k.Select,
+		k.GoBack,
 	}
 }
 

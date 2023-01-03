@@ -4,6 +4,8 @@ package coincap
 import (
 	"errors"
 	"fmt"
+	"log"
+	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -44,7 +46,8 @@ func (e DataFetchError) Error() string {
 	return e.Err.Error()
 }
 
-var client = resty.New().SetTimeout(10 * time.Second)
+var apiKey = "2d238e17-b2f0-48b3-a8c9-f3c6fc932c7f" // free public apiKey
+var client = resty.New().SetTimeout(10*time.Second).SetHeader("Authorization", "Bearer "+apiKey)
 
 func GetAssets() ([]Asset, error) {
 	var result GetAssetsResult
@@ -61,6 +64,11 @@ func GetAssets() ([]Asset, error) {
 
 func GetAssetHistory(assetId string) ([]AssetHistory, error) {
 	var result GetAssetHistoryResult
+	// get data for the last 30 days
+	var startDate = strconv.FormatInt(time.Now().AddDate(0, 0, -1).Unix(), 10)
+	var endDate = strconv.FormatInt(time.Now().Unix(), 10)
+	log.Print(fmt.Sprintf("https://api.coincap.io/v2/assets/%s/history?interval=d1&start=%s&end=%s", assetId, startDate, endDate))
+	// _, err := client.R().SetResult(&result).Get(fmt.Sprintf("https://api.coincap.io/v2/assets/%s/history?interval=d1&start=%s&end=%s", assetId, startDate, endDate))
 	_, err := client.R().SetResult(&result).Get(fmt.Sprintf("https://api.coincap.io/v2/assets/%s/history?interval=d1", assetId))
 	if err != nil {
 		return nil, DataFetchError{Err: err}

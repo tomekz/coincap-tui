@@ -41,10 +41,9 @@ var (
 
 func calculateTableDimensions(width int, height int) (int, int) {
 	tableWidth := width - 2 // 2 for padding
-	tableHeight := 20       // 20  rows + 5 for padding
+	tableHeight := 20       // 20  rows
 
 	return tableWidth, tableHeight
-
 }
 
 func TableStyles(baseStyles table.Styles) table.Styles {
