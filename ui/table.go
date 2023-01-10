@@ -13,6 +13,7 @@ import (
 
 type tableKeymap struct {
 	Refresh key.Binding
+	Select  key.Binding
 }
 
 type tableModel struct {
@@ -49,13 +50,10 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.isLoading = true
 			return m, getAssetsCmd()
 		}
-		// if key.Matches(msg, m.keymap.Select) {
-		// 	m.isLoading = true
-		// 	m.showGraph = true
-		// 	m.assethHistory = []float64{}
-		//
-		// 	return m, getAssetHistoryCmd(m.table.SelectedRow()[1])
-		// }
+		if key.Matches(msg, m.keymap.Select) {
+			assetId := m.table.SelectedRow()[1]
+			return m, SelectAssetCmd(assetId)
+		}
 		// if key.Matches(msg, m.keymap.GoBack) {
 		// 	m.showGraph = false
 		// 	m.error = nil
@@ -115,6 +113,10 @@ func newTable() tableModel {
 			key.WithKeys("r"),
 			key.WithHelp("r", "refresh"),
 		),
+		Select: key.NewBinding(
+			key.WithKeys("enter"),
+			key.WithHelp("enter", "select"),
+		),
 	}
 
 	columns := []table.Column{
@@ -144,21 +146,36 @@ func newTable() tableModel {
 	}
 }
 
+// ======== //
+// commands //
+// ======== //
+
+type SelectAssetMsg struct {
+	value string
+}
+
+func SelectAssetCmd(value string) tea.Cmd {
+	return func() tea.Msg {
+		return SelectAssetMsg{value}
+	}
+}
+
 // ======= //
 // models  //
 // ======= //
+
 func (k tableKeymap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		// k.Help,
 		k.Refresh,
 		// k.Exit,
-		// k.Select,
+		k.Select,
 		// k.GoBack,
 	}
 }
 
 func (k tableKeymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Refresh},
+		{k.Refresh, k.Select},
 	}
 }

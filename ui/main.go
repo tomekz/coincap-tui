@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -100,48 +102,22 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
 		m.help.Width = msg.Width
 
+	case GoBackMsg:
+		m.currView = tableView
+
+	case SelectAssetMsg:
+		m.currView = graphView
+
 	case tea.KeyMsg:
 		if key.Matches(msg, m.keymap.Exit) {
 			return m, tea.Quit
 		}
-		if key.Matches(msg, m.keymap.Help) {
-			m.help.ShowAll = !m.help.ShowAll
-		}
-		// if key.Matches(msg, m.keymap.Select) {
-		// 	m.isLoading = true
-		// 	m.showGraph = true
-		// 	m.assethHistory = []float64{}
-		//
-		// 	return m, getAssetHistoryCmd(m.table.SelectedRow()[1])
-		// }
-		if key.Matches(msg, m.keymap.GoBack) {
-			m.showGraph = false
-			m.error = nil
-			m.assethHistory = []float64{}
-			m.isLoading = false
-			return m, nil
-		}
-
-		// case getAssetHistoryMsg:
-		// 	assetHistory := make([]float64, len(msg.assetHistory))
-		// 	for i, ah := range msg.assetHistory {
-		// 		assetHistory[i] = ah.PriceUsd
-		// 	}
-		// 	m.assethHistory = assetHistory
-		// 	m.isLoading = false
-		//
-		// 	// case errMsg:
-		// 	// 	m.error = msg.error
-		// 	// default:
-		// 	// 	var spinnerUpdateCmd tea.Cmd
-		// 	// 	m.spinner, spinnerUpdateCmd = m.spinner.Update(msg)
-		// 	// 	cmds = append(cmds, spinnerUpdateCmd)
-		// 	//
 	}
 
 	switch m.currView {
@@ -173,6 +149,13 @@ func baseView(contentView string, helpView string, width int, height int) string
 
 func (m mainModel) View() string {
 
+	if m.error != nil {
+		return baseView(fmt.Sprintf("Error: %s", m.error), m.help.View(m.keymap), m.width, m.height)
+	}
+	if m.error != nil {
+		return baseView(m.error.Error(), m.help.View(m.keymap), m.width, m.height)
+	}
+
 	tWidth, tHeight := calculateTableDimensions(m.width, m.height)
 
 	switch m.currView {
@@ -192,35 +175,6 @@ func (m mainModel) View() string {
 			tHeight,
 		)
 	}
-
-	// if m.isLoading {
-	// 	v = m.spinner.View()
-	// }
-	//
-	// if len(m.assethHistory) > 0 && m.showGraph {
-	// 	graph := asciigraph.Plot(
-	// 		m.assethHistory,
-	// 		asciigraph.Height(tHeight),
-	// 		asciigraph.Width(tWidth),
-	// 		asciigraph.Caption("Price History"),
-	// 		asciigraph.CaptionColor(asciigraph.Red),
-	// 	)
-	// 	v = graph
-	// }
-	//
-	// if m.error != nil {
-	// 	v = fmt.Sprintf("Error: %s", m.error)
-	// }
-	//
-	// return lipgloss.JoinVertical(
-	// 	lipgloss.Center,
-	// 	tableStyles.
-	// 		// Align(lipgloss.Center).
-	// 		Width(tWidth).
-	// 		Height(tHeight).
-	// 		Render(v),
-	// 	helpStyles.Align(lipgloss.Center).Width(tWidth).Render(m.help.View(m.keymap)),
-	// )
 }
 
 // ======= //
