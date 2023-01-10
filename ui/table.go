@@ -32,19 +32,8 @@ func (m tableModel) Init() tea.Cmd {
 func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		// m.height = msg.Height
-		// m.width = msg.Width
-		// m.help.Width = msg.Width
 
 	case tea.KeyMsg:
-		// if key.Matches(msg, m.keymap.Exit) {
-		// 	return m, tea.Quit
-		// }
-		// if key.Matches(msg, m.keymap.Help) {
-		// 	m.help.ShowAll = !m.help.ShowAll
-		//
-		// }
 		if key.Matches(msg, m.keymap.Refresh) {
 			m.error = nil
 			m.isLoading = true
@@ -54,13 +43,6 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			assetId := m.table.SelectedRow()[1]
 			return m, SelectAssetCmd(assetId)
 		}
-		// if key.Matches(msg, m.keymap.GoBack) {
-		// 	m.showGraph = false
-		// 	m.error = nil
-		// 	m.assethHistory = []float64{}
-		// 	m.isLoading = false
-		// 	return m, nil
-		// }
 
 	case getAssetsMsg:
 		rows := make([]table.Row, len(msg.assets))

@@ -5,7 +5,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -20,19 +19,14 @@ type keymap struct {
 }
 
 type mainModel struct {
-	currView      currentView
-	graphView     graphModel
-	tableView     tableModel
-	keymap        keymap
-	error         error
-	table         table.Model
-	help          help.Model
-	spinner       spinner.Model
-	width         int
-	height        int
-	isLoading     bool
-	assethHistory []float64
-	showGraph     bool
+	currView  currentView
+	graphView graphModel
+	tableView tableModel
+	keymap    keymap
+	error     error
+	help      help.Model
+	width     int
+	height    int
 }
 
 type currentView int
@@ -43,23 +37,6 @@ const (
 )
 
 func Init() tea.Model {
-	columns := []table.Column{
-
-		{Title: "Rank", Width: 4},
-		{Title: "Name", Width: 20},
-		{Title: "Symbol", Width: 6},
-		{Title: "Price USD", Width: 10},
-		{Title: "Change (24hr)", Width: 15},
-		{Title: "Supply", Width: 10},
-		{Title: "Max Supply", Width: 10},
-		{Title: "Market Cap", Width: 10},
-		{Title: "Volume (24hr)", Width: 15},
-	}
-
-	t := table.New(table.WithColumns(columns), table.WithFocused(true))
-	s := table.DefaultStyles()
-	t.SetStyles(TableStyles(s))
-
 	keymap := keymap{
 		Exit: key.NewBinding(
 			key.WithKeys("ctrl+c"),
@@ -78,24 +55,18 @@ func Init() tea.Model {
 			key.WithHelp("b", "go back"),
 		),
 	}
-	spinner := spinner.New()
 
 	return mainModel{
-		currView:      tableView,
-		tableView:     newTable(),
-		graphView:     newGraph(),
-		keymap:        keymap,
-		table:         t,
-		help:          help.New(),
-		spinner:       spinner,
-		isLoading:     true,
-		assethHistory: []float64{},
-		showGraph:     false,
+		currView:  tableView,
+		tableView: newTable(),
+		graphView: newGraph(),
+		keymap:    keymap,
+		help:      help.New(),
 	}
 }
 
 func (m mainModel) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, getAssetsCmd())
+	return newTable().Init()
 }
 
 func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
