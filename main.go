@@ -1,16 +1,5 @@
 /**
  Tui let's you check crypto prices in your terminal.
- Usage:
-
- tui [command]
-
-	Available Commands:
-		-h
-			help for Tui
-		-v
-			version for Tui
-		-refresh
-			enable auto refresh (every 10 seconds)
 **/
 package main
 

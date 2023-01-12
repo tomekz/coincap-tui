@@ -1,21 +1,19 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/tomekz/tui/coincap"
 )
 
 type keymap struct {
-	Exit   key.Binding
-	Help   key.Binding
-	Select key.Binding
-	GoBack key.Binding
+	Exit    key.Binding
+	Help    key.Binding
+	Select  key.Binding
+	GoBack  key.Binding
+	Refresh key.Binding
 }
 
 type mainModel struct {
@@ -23,7 +21,6 @@ type mainModel struct {
 	graphView graphModel
 	tableView tableModel
 	keymap    keymap
-	error     error
 	help      help.Model
 	width     int
 	height    int
@@ -89,6 +86,9 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, m.keymap.Exit) {
 			return m, tea.Quit
 		}
+		if key.Matches(msg, m.keymap.Help) {
+			m.help.ShowAll = !m.help.ShowAll
+		}
 	}
 
 	switch m.currView {
@@ -105,81 +105,23 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func baseView(contentView string, helpView string, width int, height int) string {
-
-	return lipgloss.JoinVertical(
-		lipgloss.Center,
-		tableStyles.
-			// Align(lipgloss.Center).
-			Width(width).
-			Height(height).
-			Render(contentView),
-		helpStyles.Align(lipgloss.Center).Width(width).Render(helpView),
-	)
-}
-
 func (m mainModel) View() string {
-
-	if m.error != nil {
-		return baseView(fmt.Sprintf("Error: %s", m.error), m.help.View(m.keymap), m.width, m.height)
-	}
-	if m.error != nil {
-		return baseView(m.error.Error(), m.help.View(m.keymap), m.width, m.height)
-	}
 
 	tWidth, tHeight := calculateTableDimensions(m.width, m.height)
 
 	switch m.currView {
 	// helpStyles.Align(lipgloss.Center).Width(tWidth).Render(m.help.View(m.keymap)),
 	case graphView:
-		return baseView(
-			m.graphView.View(),
-			m.graphView.help.View(m.graphView.keymap),
-			tWidth,
-			tHeight,
-		)
+		return m.graphView.View() + "\n" + m.help.View(m.keymap)
 	default:
-		return baseView(
-			m.tableView.View(),
-			m.tableView.help.View(m.tableView.keymap),
-			tWidth,
-			tHeight,
-		)
+		return lipgloss.JoinVertical(
+			lipgloss.Center,
+			tableStyles.
+				Width(tWidth).
+				Height(tHeight).
+				Render(m.tableView.View()),
+			helpStyles.Align(lipgloss.Center).Width(tWidth).Render(m.help.View(m.keymap)))
 	}
-}
-
-// ======= //
-// cmds    //
-// ======= //
-func getAssetsCmd() tea.Cmd {
-	return func() tea.Msg {
-		assets, err := coincap.GetAssets()
-		if err != nil {
-			return errMsg{err}
-		}
-		return getAssetsMsg{assets: assets}
-	}
-}
-
-func getAssetHistoryCmd(assetId string) tea.Cmd {
-	return func() tea.Msg {
-		assetHistory, err := coincap.GetAssetHistory(assetId)
-		if err != nil {
-			return errMsg{err}
-		}
-		return getAssetHistoryMsg{assetHistory: assetHistory}
-	}
-}
-
-// ======= //
-// msgs    //
-// ======= //
-type getAssetsMsg struct {
-	assets []coincap.Asset
-}
-
-type getAssetHistoryMsg struct {
-	assetHistory []coincap.AssetHistory
 }
 
 type errMsg struct{ error }

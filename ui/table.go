@@ -9,18 +9,22 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/tomekz/tui/coincap"
 )
 
 type tableKeymap struct {
+	Exit    key.Binding
+	Help    key.Binding
+	GoBack  key.Binding
 	Refresh key.Binding
 	Select  key.Binding
 }
 
 type tableModel struct {
+	help      help.Model
 	keymap    tableKeymap
 	table     table.Model
 	spinner   spinner.Model
-	help      help.Model
 	isLoading bool
 	error     error
 }
@@ -32,10 +36,14 @@ func (m tableModel) Init() tea.Cmd {
 func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-
 	case tea.KeyMsg:
+		if key.Matches(msg, m.keymap.Exit) {
+			return m, tea.Quit
+		}
+		if key.Matches(msg, m.keymap.Help) {
+			m.help.ShowAll = !m.help.ShowAll
+		}
 		if key.Matches(msg, m.keymap.Refresh) {
-			m.error = nil
 			m.isLoading = true
 			return m, getAssetsCmd()
 		}
@@ -99,6 +107,18 @@ func newTable() tableModel {
 			key.WithKeys("enter"),
 			key.WithHelp("enter", "select"),
 		),
+		Exit: key.NewBinding(
+			key.WithKeys("ctrl+c"),
+			key.WithHelp("ctrl+c", "exit"),
+		),
+		Help: key.NewBinding(
+			key.WithKeys("?"),
+			key.WithHelp("?", "show help"),
+		),
+		GoBack: key.NewBinding(
+			key.WithKeys("b"),
+			key.WithHelp("b", "go back"),
+		),
 	}
 
 	columns := []table.Column{
@@ -142,22 +162,16 @@ func SelectAssetCmd(value string) tea.Cmd {
 	}
 }
 
-// ======= //
-// models  //
-// ======= //
-
-func (k tableKeymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		// k.Help,
-		k.Refresh,
-		// k.Exit,
-		k.Select,
-		// k.GoBack,
-	}
+type getAssetsMsg struct {
+	assets []coincap.Asset
 }
 
-func (k tableKeymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Refresh, k.Select},
+func getAssetsCmd() tea.Cmd {
+	return func() tea.Msg {
+		assets, err := coincap.GetAssets()
+		if err != nil {
+			return errMsg{err}
+		}
+		return getAssetsMsg{assets: assets}
 	}
 }

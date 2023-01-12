@@ -1,11 +1,14 @@
 package ui
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/guptarohit/asciigraph"
+	"github.com/tomekz/tui/coincap"
 )
 
 type graphKeymap struct {
@@ -20,6 +23,7 @@ type graphModel struct {
 	spinner       spinner.Model
 	height        int
 	width         int
+	error         error
 }
 
 func (m graphModel) Init() tea.Cmd {
@@ -45,6 +49,9 @@ func (m graphModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.assethHistory = assetHistory
 		m.isLoading = false
 
+	case errMsg:
+		m.error = msg.error
+
 	case tea.KeyMsg:
 		if key.Matches(msg, m.keymap.GoBack) {
 			return m, GoBackCmd()
@@ -55,6 +62,10 @@ func (m graphModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m graphModel) View() string {
+	if m.error != nil {
+		return fmt.Sprintf("Error: %s", m.error)
+	}
+
 	if m.isLoading {
 		return m.spinner.View()
 	}
@@ -65,6 +76,8 @@ func (m graphModel) View() string {
 		m.assethHistory,
 		asciigraph.Height(tHeight),
 		asciigraph.Width(tWidth),
+		asciigraph.Precision(3),
+		asciigraph.AxisColor(asciigraph.Red),
 		asciigraph.Caption("Price History"),
 		asciigraph.CaptionColor(asciigraph.Red),
 	)
@@ -92,27 +105,24 @@ func newGraph() graphModel {
 // commands //
 // ======== //
 
+type getAssetHistoryMsg struct {
+	assetHistory []coincap.AssetHistory
+}
+
+func getAssetHistoryCmd(assetId string) tea.Cmd {
+	return func() tea.Msg {
+		assetHistory, err := coincap.GetAssetHistory(assetId)
+		if err != nil {
+			return errMsg{err}
+		}
+		return getAssetHistoryMsg{assetHistory: assetHistory}
+	}
+}
+
 type GoBackMsg bool
 
 func GoBackCmd() tea.Cmd {
 	return func() tea.Msg {
 		return GoBackMsg(true)
-	}
-}
-
-func (k graphKeymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		// k.Help,
-		// k.Refresh,
-		// k.Exit,
-		// k.Select,
-		k.GoBack,
-	}
-}
-
-func (k graphKeymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.GoBack},
-		{},
 	}
 }
