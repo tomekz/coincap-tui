@@ -5,9 +5,10 @@ import (
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/tomekz/tui/coincap"
+	"github.com/tomekz/coincap-tui/coincap"
 )
 
 type tableKeymap struct {
@@ -16,9 +17,11 @@ type tableKeymap struct {
 }
 
 type tableModel struct {
-	keymap tableKeymap
-	table  table.Model
-	error  error
+	keymap    tableKeymap
+	table     table.Model
+	error     error
+	spinner   spinner.Model
+	isLoading bool
 }
 
 func (m tableModel) Init() tea.Cmd {
@@ -30,7 +33,8 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if key.Matches(msg, m.keymap.Refresh) {
-			return m, getAssetsCmd()
+			m.isLoading = true
+			return m, tea.Batch(m.spinner.Tick, getAssetsCmd())
 		}
 		if key.Matches(msg, m.keymap.Select) {
 			assetId := m.table.SelectedRow()[1]
@@ -53,6 +57,7 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		m.table.SetRows(rows)
+		m.isLoading = false
 
 	case errMsg:
 		m.error = msg.error
@@ -68,6 +73,9 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m tableModel) View() string {
 	if m.error != nil {
 		return fmt.Sprintf("Error: %s", m.error)
+	}
+	if m.isLoading {
+		return m.spinner.View()
 	}
 
 	return m.table.View()
@@ -100,10 +108,12 @@ func newTable() tableModel {
 	t := table.New(table.WithColumns(columns), table.WithFocused(true))
 	s := table.DefaultStyles()
 	t.SetStyles(TableStyles(s))
+	spinner := spinner.NewModel()
 
 	return tableModel{
-		keymap: keymap,
-		table:  t,
+		keymap:  keymap,
+		table:   t,
+		spinner: spinner,
 	}
 }
 

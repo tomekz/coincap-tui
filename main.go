@@ -9,7 +9,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/tomekz/tui/ui"
+	"github.com/tomekz/coincap-tui/ui"
 )
 
 func main() {

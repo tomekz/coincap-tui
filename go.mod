@@ -1,4 +1,4 @@
-module github.com/tomekz/tui
+module github.com/tomekz/coincap-tui
 
 go 1.19
 

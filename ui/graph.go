@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/guptarohit/asciigraph"
-	"github.com/tomekz/tui/coincap"
+	"github.com/tomekz/coincap-tui/coincap"
 )
 
 type graphKeymap struct {
