@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,7 +17,6 @@ type graphKeymap struct {
 type graphModel struct {
 	keymap        graphKeymap
 	assethHistory []float64
-	help          help.Model
 	isLoading     bool
 	spinner       spinner.Model
 	height        int
@@ -78,7 +76,7 @@ func (m graphModel) View() string {
 		asciigraph.Width(tWidth),
 		asciigraph.Precision(3),
 		asciigraph.AxisColor(asciigraph.Red),
-		asciigraph.Caption("Price History"),
+		asciigraph.Caption("Price History 14d"),
 		asciigraph.CaptionColor(asciigraph.Red),
 	)
 
@@ -124,5 +122,17 @@ type GoBackMsg bool
 func GoBackCmd() tea.Cmd {
 	return func() tea.Msg {
 		return GoBackMsg(true)
+	}
+}
+
+func (k graphKeymap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		k.GoBack,
+	}
+}
+
+func (k graphKeymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.GoBack},
 	}
 }

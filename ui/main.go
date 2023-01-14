@@ -106,21 +106,22 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m mainModel) View() string {
-
 	tWidth, tHeight := calculateTableDimensions(m.width, m.height)
 
 	switch m.currView {
-	// helpStyles.Align(lipgloss.Center).Width(tWidth).Render(m.help.View(m.keymap)),
 	case graphView:
-		return m.graphView.View() + "\n" + m.help.View(m.keymap)
+		return lipgloss.JoinVertical(
+			lipgloss.Center,
+			tableStyles.Render(m.graphView.View()), helpStyles.Width(tWidth).Render(m.help.View(m.graphView.keymap)),
+		)
+
 	default:
 		return lipgloss.JoinVertical(
 			lipgloss.Center,
-			tableStyles.
-				Width(tWidth).
-				Height(tHeight).
-				Render(m.tableView.View()),
-			helpStyles.Align(lipgloss.Center).Width(tWidth).Render(m.help.View(m.keymap)))
+			tableStyles.Width(tWidth).Height(tHeight).Render(m.tableView.View()),
+			helpStyles.Width(tWidth).Render(m.help.View(m.tableView.keymap)),
+			helpStyles.Width(tWidth).Render(m.help.View(m.keymap)),
+		)
 	}
 }
 
@@ -134,18 +135,13 @@ func (e errMsg) Error() string { return e.error.Error() }
 func (k keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		k.Help,
-		// k.Refresh,
 		k.Exit,
-		k.Select,
-		k.GoBack,
 	}
 }
 
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{table.DefaultKeyMap().GotoTop, table.DefaultKeyMap().GotoBottom, table.DefaultKeyMap().PageUp, table.DefaultKeyMap().PageDown},
-		{table.DefaultKeyMap().HalfPageUp, table.DefaultKeyMap().HalfPageDown,
-			// k.Refresh,
-			k.Exit},
+		{k.Help, k.Exit, table.DefaultKeyMap().GotoTop, table.DefaultKeyMap().GotoBottom, table.DefaultKeyMap().PageUp, table.DefaultKeyMap().PageDown},
+		{table.DefaultKeyMap().HalfPageUp, table.DefaultKeyMap().HalfPageDown},
 	}
 }

@@ -44,12 +44,11 @@ func (e DataFetchError) Error() string {
 	return e.Err.Error()
 }
 
-var apiKey = "2d238e17-b2f0-48b3-a8c9-f3c6fc932c7f" // free public apiKey
-var client = resty.New().SetTimeout(10*time.Second).SetHeader("Authorization", "Bearer "+apiKey)
+var client = resty.New().SetTimeout(5 * time.Second)
 
-func GetAssets() ([]Asset, error) {
+func GetAssets(limit int) ([]Asset, error) {
 	var result GetAssetsResult
-	_, err := client.R().SetResult(&result).Get("https://api.coincap.io/v2/assets")
+	_, err := client.R().SetResult(&result).Get(fmt.Sprintf("https://api.coincap.io/v2/assets?limit=%d", limit))
 	if err != nil {
 		return nil, DataFetchError{Err: err}
 	}
@@ -62,7 +61,7 @@ func GetAssets() ([]Asset, error) {
 
 func GetAssetHistory(assetId string) ([]AssetHistory, error) {
 	var result GetAssetHistoryResult
-	_, err := client.R().SetResult(&result).Get(fmt.Sprintf("https://api.coincap.io/v2/assets/%s/history?interval=d1", assetId))
+	_, err := client.R().SetResult(&result).Get(fmt.Sprintf("https://api.coincap.io/v2/assets/%s/history?interval=h6", assetId))
 	if err != nil {
 		return nil, DataFetchError{Err: err}
 	}
@@ -71,9 +70,9 @@ func GetAssetHistory(assetId string) ([]AssetHistory, error) {
 		return nil, DataFetchError{Err: errors.New("no asset history found for assetId " + assetId)}
 	}
 
-	// get only most recent history
-	chunkSize := len(result.Data) / 2
-	res := result.Data[chunkSize:]
+	// workaround to get last 14 days of data. `start` and `end` API params are not working
+	chunkSize := len(result.Data) / 7
+	res := result.Data[6*chunkSize:]
 
 	return res, nil
 }

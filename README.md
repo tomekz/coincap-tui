@@ -1,38 +1,31 @@
-## tui
-Tui let's you check crypto prices in your terminal.
+## coincap-tui
+coincap-tui let's you check crypto prices in your terminal.
 
 Features:
-
-- nice UI with [bubble-tea](https://github.com/charmbracelet/bubbletea)
-- fetch crypto assets data from [ coincap ](https://docs.coincap.io/) REST API
+- fetch crypto assets data from [ coincap ](https://docs.coincap.ioA/) REST API
 - display results in tabular format
+- nice UI with [bubble-tea](https://github.com/charmbracelet/bubbletea)
 
-## :keyboard: Keybindings
+## :keyboard: keybindings
 
 |      Key      |                Description                |
 | :-----------: | :---------------------------------------: |
-|  `Ctrl+C`     |           Exit from application           |
-| `g, home`     |         Go to top                         |
-| `G, end`      |        Go to end                          |
-| `b, pgup`     |             Page up                       |
-|  `f, pgdn`    |              Page down                    |
-|    `u`        |      1/2 page up                          |
-|      `d`      |                1/2 page down              |
+|     `r`       |           refresh data                    |
+|   `enter`     |           show price history graph.       |
+|      `b`      |           go back                         |
+|     `j`       |             go down                       |
+|     `k`       |              go up                        |
+| `g, home`     |         go to top                         |
+| `G, end`      |        go to end                          |
+| `ctrl-c`      |                exit                       |
 
-## CLI options
 
-  
-  - **`--help`**: Show help text
-    ```shell
-    $ tui --help
-    ```
-  - **`--refresh`**: Enable auto refresh. (Every 10 seconds)
-     ```shell
-    $ tui --refresh
-    ```
- 
+## how to run
 
-##  Acknowledgments
+```sh
+ go run main.go
+```
+
+## acknowledgments
 
 Inspired by [tinance](https://github.com/Alcadramin/tinance)
-
