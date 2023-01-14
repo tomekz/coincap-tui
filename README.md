@@ -6,6 +6,14 @@ Features:
 - display results in tabular format
 - nice UI with [bubble-tea](https://github.com/charmbracelet/bubbletea)
 
+<img src="img/table" alt="demo" />
+
+table with crypto assets
+
+<img src="img/graph" alt="demo" />
+
+price history for the last 14 days
+
 ## :keyboard: keybindings
 
 |      Key      |                Description                |

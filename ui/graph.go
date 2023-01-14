@@ -15,6 +15,7 @@ type graphKeymap struct {
 }
 
 type graphModel struct {
+	selected      string
 	keymap        graphKeymap
 	assethHistory []float64
 	isLoading     bool
@@ -37,6 +38,7 @@ func (m graphModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case SelectAssetMsg:
 		m.isLoading = true
+		m.selected = msg.value
 		return m, tea.Batch(m.spinner.Tick, getAssetHistoryCmd(msg.value))
 
 	case getAssetHistoryMsg:
@@ -76,7 +78,7 @@ func (m graphModel) View() string {
 		asciigraph.Width(tWidth),
 		asciigraph.Precision(3),
 		asciigraph.AxisColor(asciigraph.Red),
-		asciigraph.Caption("Price History 14d"),
+		asciigraph.Caption(fmt.Sprintf("%s price history 14d", m.selected)),
 		asciigraph.CaptionColor(asciigraph.Red),
 	)
 
