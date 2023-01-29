@@ -2,7 +2,7 @@
 coincap-tui let's you check crypto prices in your terminal.
 
 Features:
-- fetch crypto assets data from [ coincap ](https://docs.coincap.ioA/) REST API
+- fetch crypto assets data from [ coincap ](https://docs.coincap.io/) REST API
 - display results in tabular format
 - nice UI with [bubble-tea](https://github.com/charmbracelet/bubbletea)
 
