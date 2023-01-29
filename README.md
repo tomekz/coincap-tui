@@ -30,14 +30,22 @@ price history for the last 14 days
 
 ## installation
 
-You need to have go on your machine. 
+Requires GO
 
+```
 $ go install github.com/tomekz/coincap-tui@latest
+```
 
-## how to run
+## usage
+
+```
+$ coincap-tui
+```
+
+## dev
 
 ```sh
- go run main.go
+$ go run main.go
 ```
 
 ## acknowledgments
