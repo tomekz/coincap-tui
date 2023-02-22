@@ -3,6 +3,7 @@ coincap-tui let's you check crypto prices in your terminal.
 
 Features:
 - fetch crypto assets data from [ coincap ](https://docs.coincap.io/) REST API
+- save favourites 
 - display results in tabular format
 - nice UI with [bubble-tea](https://github.com/charmbracelet/bubbletea)
 
@@ -20,6 +21,9 @@ price history for the last 14 days
 | :-----------: | :---------------------------------------: |
 |     `r`       |           refresh data                    |
 |   `enter`     |           show price history graph.       |
+|   `a`         |           show all assets.                |
+|   `f`         |           toggle favourite                |
+|   `F`         |           show favourites                 |
 |      `b`      |           go back                         |
 |     `j`       |             go down                       |
 |     `k`       |              go up                        |

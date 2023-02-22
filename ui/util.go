@@ -1,6 +1,8 @@
 package ui
 
-import "strconv"
+import (
+	"strconv"
+)
 
 // format float64 to string and display value in billions, millions or thousands
 func formatFloat(f float64) string {

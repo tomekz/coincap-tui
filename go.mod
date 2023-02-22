@@ -8,7 +8,12 @@ require (
 	github.com/guptarohit/asciigraph v0.5.5
 )
 
-require golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+require (
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/muesli/go-app-paths v0.2.2 // indirect
+	github.com/thoas/go-funk v0.9.3 // indirect
+	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+)
 
 require (
 	github.com/aymanbagabas/go-osc52 v1.0.3 // indirect

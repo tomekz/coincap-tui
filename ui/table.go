@@ -1,11 +1,8 @@
 package ui
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"strconv"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -15,27 +12,15 @@ import (
 )
 
 type tableKeymap struct {
-	Refresh   key.Binding
-	Select    key.Binding
-	Favourite key.Binding
-}
-
-var favs map[string]bool = make(map[string]bool)
-
-/*
-	Adds or removes asset from favourites
-*/
-func favourite(favs map[string]bool, assetId string) {
-	exists := favs[assetId]
-	if exists {
-		delete(favs, assetId)
-	} else {
-		favs[assetId] = true
-	}
+	Refresh        key.Binding
+	Select         key.Binding
+	Favourite      key.Binding
+	ShowFavourites key.Binding
+	ShowAll        key.Binding
 }
 
 type tableModel struct {
-	rows      []table.Row
+	assets    []Asset
 	keymap    tableKeymap
 	table     table.Model
 	error     error
@@ -44,7 +29,7 @@ type tableModel struct {
 }
 
 func (m tableModel) Init() tea.Cmd {
-	return tea.Batch(getAssetsCmd(), LoadFavsCmd())
+	return tea.Batch(GetAssetsCmd(), LoadFavsCmd())
 }
 
 func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -52,8 +37,9 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if key.Matches(msg, m.keymap.Refresh) {
+			m.error = nil
 			m.isLoading = true
-			return m, tea.Batch(m.spinner.Tick, getAssetsCmd())
+			return m, tea.Batch(m.spinner.Tick, GetAssetsCmd())
 		}
 		if key.Matches(msg, m.keymap.Select) {
 			assetId := m.table.SelectedRow()[2]
@@ -63,55 +49,23 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			assetId := m.table.SelectedRow()[2]
 			return m, FavAssetCmd(assetId)
 		}
-
-	case getAssetsMsg:
-		rows := make([]table.Row, len(msg.assets))
-		for i, asset := range msg.assets {
-			fav := ""
-			if favs[asset.ID] {
-				fav = "★"
-			}
-			maxSupply := formatFloat(asset.MaxSupply)
-			if asset.MaxSupply == 0 {
-				maxSupply = "∞"
-			}
-			rows[i] = []string{
-				strconv.FormatInt(asset.Rank, 10),
-				fav,
-				asset.ID,
-				asset.Symbol,
-				strconv.FormatFloat(asset.PriceUsd, 'f', 2, 64),
-				formatPercent(asset.ChangePercent24Hr),
-				formatFloat(asset.Supply),
-				maxSupply,
-				formatFloat(asset.MarketCapUsd),
-				formatFloat(asset.VolumeUsd24Hr),
-			}
+		if key.Matches(msg, m.keymap.ShowFavourites) {
+			return m, GetFavouriteAssetsCmd(m.assets)
 		}
+		if key.Matches(msg, m.keymap.ShowAll) {
+			return m, GetAssetsCmd()
+		}
+
+	case GetAssetsMsg:
+		m.assets = msg.assets // save assets cause table model don't have a getter
+		rows := getRows(msg.assets)
 		m.table.SetRows(rows)
-		m.rows = rows // save rows cause table model don't have a getter
+		m.table.SetCursor(0)
 		m.isLoading = false
 
 	case FavAssetMsg:
-		rows := make([]table.Row, len(m.rows))
-		for i, row := range m.rows {
-			fav := ""
-			if favs[row[2]] {
-				fav = "★"
-			}
-			rows[i] = []string{
-				row[0],
-				fav,
-				row[2],
-				row[3],
-				row[4],
-				row[5],
-				row[6],
-				row[7],
-				row[8],
-				row[9],
-			}
-		}
+		m.assets = updateFavourite(m.assets, msg.assetId)
+		rows := getRows(m.assets)
 		m.table.SetRows(rows)
 
 	case errMsg:
@@ -148,7 +102,15 @@ func newTable() tableModel {
 		),
 		Favourite: key.NewBinding(
 			key.WithKeys("f"),
-			key.WithHelp("f", "add to favourites"),
+			key.WithHelp("f", "toggle favourite"),
+		),
+		ShowFavourites: key.NewBinding(
+			key.WithKeys("F"),
+			key.WithHelp("F", "show favourites"),
+		),
+		ShowAll: key.NewBinding(
+			key.WithKeys("a"),
+			key.WithHelp("a", "show all"),
 		),
 	}
 
@@ -187,16 +149,30 @@ type FavAssetMsg struct {
 
 func FavAssetCmd(assetId string) tea.Cmd {
 	return func() tea.Msg {
-		favourite(favs, assetId)
-		content, err := json.Marshal(favs)
-		if err != nil {
-			fmt.Println(err)
-		}
-		err = ioutil.WriteFile("fav_assets.json", content, 0644)
-		if err != nil {
-			log.Fatal(err)
+		favourite(assetId)
+		if err := saveFavourites(); err != nil {
+			return errMsg{err}
 		}
 		return FavAssetMsg{assetId}
+	}
+}
+
+func GetFavouriteAssetsCmd(assets []Asset) tea.Cmd {
+	return func() tea.Msg {
+		favs := getFavouriteAssets(assets)
+		if len(favs) == 0 {
+			return errMsg{errors.New("no favourites, refresh to load all assets")}
+		}
+		return GetAssetsMsg{assets: favs}
+	}
+}
+
+func LoadFavsCmd() tea.Cmd {
+	return func() tea.Msg {
+		if err := loadFavourites(); err != nil {
+			return errMsg{err}
+		}
+		return nil
 	}
 }
 
@@ -210,32 +186,17 @@ func SelectAssetCmd(value string) tea.Cmd {
 	}
 }
 
-type getAssetsMsg struct {
-	assets []coincap.Asset
+type GetAssetsMsg struct {
+	assets []Asset
 }
 
-func LoadFavsCmd() tea.Cmd {
+func GetAssetsCmd() tea.Cmd {
 	return func() tea.Msg {
-		content, err := ioutil.ReadFile("fav_assets.json")
+		assets, err := coincap.GetAssets(300)
 		if err != nil {
 			return errMsg{err}
 		}
-		err = json.Unmarshal(content, &favs)
-		log.Println("ll", favs)
-		if err != nil {
-			return errMsg{err}
-		}
-		return nil
-	}
-}
-
-func getAssetsCmd() tea.Cmd {
-	return func() tea.Msg {
-		assets, err := coincap.GetAssets(200)
-		if err != nil {
-			return errMsg{err}
-		}
-		return getAssetsMsg{assets: assets}
+		return GetAssetsMsg{assets: mapAssets(assets)}
 	}
 }
 
@@ -243,12 +204,14 @@ func (k tableKeymap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		k.Refresh,
 		k.Select,
+		k.ShowAll,
 		k.Favourite,
+		k.ShowFavourites,
 	}
 }
 
 func (k tableKeymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Refresh, k.Select, k.Favourite},
+		{k.Refresh, k.Select, k.Favourite, k.ShowFavourites},
 	}
 }
