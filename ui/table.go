@@ -71,6 +71,10 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if favs[asset.ID] {
 				fav = "★"
 			}
+			maxSupply := formatFloat(asset.MaxSupply)
+			if asset.MaxSupply == 0 {
+				maxSupply = "∞"
+			}
 			rows[i] = []string{
 				strconv.FormatInt(asset.Rank, 10),
 				fav,
@@ -79,7 +83,7 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				strconv.FormatFloat(asset.PriceUsd, 'f', 2, 64),
 				formatPercent(asset.ChangePercent24Hr),
 				formatFloat(asset.Supply),
-				formatFloat(asset.MaxSupply),
+				maxSupply,
 				formatFloat(asset.MarketCapUsd),
 				formatFloat(asset.VolumeUsd24Hr),
 			}
