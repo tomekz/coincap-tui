@@ -24,8 +24,8 @@ func favourite(assetId string) {
 }
 
 /*
-	Saves favourites to JSON file. Creates file if it doesn't exist.
-	Uses the plaform specific aplication data directory.
+Saves favourites to JSON file. Creates file if it doesn't exist.
+Uses the plaform specific aplication data directory.
 */
 func saveFavourites() error {
 	path, err := getFilePath(FILE_NAME)
@@ -47,7 +47,7 @@ func saveFavourites() error {
 		if err != nil {
 			return err
 		}
-		os.WriteFile(path, content, 0644)
+		os.WriteFile(path, content, 0o644)
 	}
 	return nil
 }
@@ -60,7 +60,7 @@ func loadFavourites() error {
 	}
 	content, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return nil
 	}
 	err = json.Unmarshal(content, &Favs)
 	if err != nil {
@@ -73,7 +73,6 @@ func loadFavourites() error {
 func getFilePath(name string) (string, error) {
 	home := gap.NewScope(gap.User, "coincap-tui")
 	path, err := home.DataPath(name)
-
 	if err != nil {
 		return "", err
 	}
