@@ -37,7 +37,7 @@ func mapAssets(assets []coincap.Asset) []Asset {
 			PriceUsd:          asset.PriceUsd,
 			ChangePercent24Hr: asset.ChangePercent24Hr,
 			Vwap24Hr:          asset.Vwap24Hr,
-			IsFavourite:       Favs[asset.ID],
+			IsFavourite:       Favs.Get()[asset.ID],
 		}
 	}).([]Asset)
 }
@@ -61,7 +61,7 @@ func getFavouriteAssets(assets []Asset) []Asset {
 func getRows(assets []Asset) []table.Row {
 	return funk.Map(assets, func(asset Asset) table.Row {
 		fav := ""
-		if Favs[asset.ID] {
+		if Favs.Get()[asset.ID] {
 			fav = "★"
 		}
 		maxSupply := formatFloat(asset.MaxSupply)

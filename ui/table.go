@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tomekz/coincap-tui/coincap"
+	"github.com/tomekz/coincap-tui/favourites"
 )
 
 type tableKeymap struct {
@@ -27,6 +28,8 @@ type tableModel struct {
 	spinner   spinner.Model
 	isLoading bool
 }
+
+var Favs = favourites.New()
 
 func (m tableModel) Init() tea.Cmd {
 	return tea.Batch(GetAssetsCmd(), LoadFavsCmd())
@@ -149,8 +152,8 @@ type FavAssetMsg struct {
 
 func FavAssetCmd(assetId string) tea.Cmd {
 	return func() tea.Msg {
-		favourite(assetId)
-		if err := saveFavourites(); err != nil {
+		Favs.Favourite(assetId)
+		if err := Favs.Save(); err != nil {
 			return errMsg{err}
 		}
 		return FavAssetMsg{assetId}
@@ -169,7 +172,7 @@ func GetFavouriteAssetsCmd(assets []Asset) tea.Cmd {
 
 func LoadFavsCmd() tea.Cmd {
 	return func() tea.Msg {
-		if err := loadFavourites(); err != nil {
+		if err := Favs.Load(); err != nil {
 			return errMsg{err}
 		}
 		return nil

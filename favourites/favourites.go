@@ -1,4 +1,4 @@
-package ui
+package favourites
 
 import (
 	"encoding/json"
@@ -10,24 +10,32 @@ import (
 
 const FILE_NAME = "fav_assets.json"
 
-/* Map of favourites */
-var Favs map[string]bool = make(map[string]bool)
+type Favourites struct {
+	// map of fovourites
+	favs map[string]bool
+}
 
-/* Adds or removes asset from favourites */
-func favourite(assetId string) {
-	exists := Favs[assetId]
-	if exists {
-		delete(Favs, assetId)
-	} else {
-		Favs[assetId] = true
+// New returns a new Favourites struct
+func New() *Favourites {
+	return &Favourites{
+		favs: make(map[string]bool),
 	}
 }
 
-/*
-Saves favourites to JSON file. Creates file if it doesn't exist.
-Uses the plaform specific aplication data directory.
-*/
-func saveFavourites() error {
+// Adds or removes asset from favourites
+func (f Favourites) Favourite(assetId string) {
+	exists := f.favs[assetId]
+	if exists {
+		delete(f.favs, assetId)
+	} else {
+		f.favs[assetId] = true
+	}
+}
+
+// Saves favourites to JSON file. Creates file if it doesn't exist.
+//
+// Uses the plaform specific aplication data directory.
+func (f Favourites) Save() error {
 	path, err := getFilePath(FILE_NAME)
 	if err != nil {
 		return err
@@ -43,7 +51,7 @@ func saveFavourites() error {
 		}
 		defer file.Close()
 	} else {
-		content, err := json.Marshal(Favs)
+		content, err := json.Marshal(f.favs)
 		if err != nil {
 			return err
 		}
@@ -52,8 +60,8 @@ func saveFavourites() error {
 	return nil
 }
 
-/* loads favourites from file */
-func loadFavourites() error {
+// Loads favourites from file
+func (f Favourites) Load() error {
 	path, err := getFilePath(FILE_NAME)
 	if err != nil {
 		return err
@@ -62,14 +70,18 @@ func loadFavourites() error {
 	if err != nil {
 		return nil
 	}
-	err = json.Unmarshal(content, &Favs)
+	err = json.Unmarshal(content, &f.favs)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-/* returns the full path to a file in the application's default data directory */
+func (f Favourites) Get() map[string]bool {
+	return f.favs
+}
+
+// returns the full path to a file in the application's default data directory
 func getFilePath(name string) (string, error) {
 	home := gap.NewScope(gap.User, "coincap-tui")
 	path, err := home.DataPath(name)
