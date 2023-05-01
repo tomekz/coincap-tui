@@ -1,6 +1,10 @@
-/**
- Tui let's you check crypto prices in your terminal.
-**/
+/*
+*
+
+	Tui let's you check crypto prices in your terminal.
+
+*
+*/
 package main
 
 import (
@@ -13,7 +17,6 @@ import (
 )
 
 func main() {
-
 	if os.Getenv("DEBUG") != "true" {
 		if f, err := tea.LogToFile("debug.log", "help"); err != nil {
 			fmt.Println("Couldn't open a file for logging:", err)

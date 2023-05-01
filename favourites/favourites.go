@@ -23,7 +23,7 @@ func New() *Favourites {
 }
 
 // Adds or removes asset from favourites
-func (f Favourites) Favourite(assetId string) {
+func (f *Favourites) Favourite(assetId string) {
 	exists := f.favs[assetId]
 	if exists {
 		delete(f.favs, assetId)
@@ -35,7 +35,7 @@ func (f Favourites) Favourite(assetId string) {
 // Saves favourites to JSON file. Creates file if it doesn't exist.
 //
 // Uses the plaform specific aplication data directory.
-func (f Favourites) Save() error {
+func (f *Favourites) Save() error {
 	path, err := getFilePath(FILE_NAME)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (f Favourites) Save() error {
 }
 
 // Loads favourites from file
-func (f Favourites) Load() error {
+func (f *Favourites) Load() error {
 	path, err := getFilePath(FILE_NAME)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (f Favourites) Load() error {
 	return nil
 }
 
-func (f Favourites) Get() map[string]bool {
+func (f *Favourites) Get() map[string]bool {
 	return f.favs
 }
 
