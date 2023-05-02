@@ -7,11 +7,11 @@ Features:
 - display results in tabular format
 - nice UI with [bubble-tea](https://github.com/charmbracelet/bubbletea)
 
-<img src="img/table.png" alt="demo" />
+<img src="docs/img/table.png" alt="demo" />
 
 table with crypto assets
 
-<img src="img/graph.png" alt="demo" />
+<img src="docs/img/graph.png" alt="demo" />
 
 price history for the last 14 days
 
