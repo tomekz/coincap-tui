@@ -49,6 +49,18 @@ sudo apt update
 sudo apt install coincap-tui
 ```
 
+**yum**:
+
+```sh
+echo '[tomekz]
+name=tomekz
+baseurl=https://yum.fury.io/tomekz/
+enabled=1
+gpgcheck=0' | sudo tee /etc/yum.repos.d/fury.repo
+sudo yum install coincap-tui
+
+```
+
 **deb/rpm/apk**:
 
 Download the `.apk`, `.deb` or `.rpm` from the [releases page](https://github.com/tomekz/coincap-tui/releases) and install with the appropriate commands.
