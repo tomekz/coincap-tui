@@ -19,6 +19,7 @@ archives:
       amd64: x86_64
 nfpms:
   - maintainer: Tomasz Zadrozny
+    id: packages
     description: "coincap-tui let's you check crypto prices in your terminal"
     homepage: 'https://github.com/tomekz/{{ .ProjectName }}'
     license: MIT
@@ -36,7 +37,12 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
-
+publishers:
+  - name: fury.io
+    ids:
+      - packages
+    dir: "{{ dir .ArtifactPath }}"
+    cmd: curl -F package=@{{ .ArtifactName }} https://{{ .Env.FURY_TOKEN }}@push.fury.io/tomekz/ 
 # modelines, feel free to remove those if you don't want/use them:
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj
