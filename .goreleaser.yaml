@@ -17,6 +17,15 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
+nfpms:
+  - maintainer: Tomasz Zadrozny
+    description: "coincap-tui let's you check crypto prices in your terminal"
+    homepage: 'https://github.com/tomekz/{{ .ProjectName }}'
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - apk
 checksum:
   name_template: 'checksums.txt'
 snapshot:

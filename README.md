@@ -34,11 +34,15 @@ price history for the last 14 days
 
 ## installation
 
-Requires GO
+**go**:
 
 ```
 $ go install github.com/tomekz/coincap-tui@latest
 ```
+
+**deb/rpm/apk**:
+
+Download the `.apk`, `.deb` or `.rpm` from the [releases page](https://github.com/tomekz/coincap-tui/releases) and install with the appropriate commands.
 
 ## usage
 
