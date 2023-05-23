@@ -40,6 +40,15 @@ price history for the last 14 days
 $ go install github.com/tomekz/coincap-tui@latest
 ```
 
+**apt**:
+
+```sh
+echo 'deb [trusted=yes] https://apt.fury.io/tomekz/ /' | sudo tee /etc/apt/sources.list.d/fury.list
+
+sudo apt update
+sudo apt install coincap-tui
+```
+
 **deb/rpm/apk**:
 
 Download the `.apk`, `.deb` or `.rpm` from the [releases page](https://github.com/tomekz/coincap-tui/releases) and install with the appropriate commands.
