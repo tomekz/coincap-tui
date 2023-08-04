@@ -6,9 +6,11 @@ import (
 
 func TestNew(t *testing.T) {
 	f := New()
+	//nolint:staticcheck
 	if f == nil {
 		t.Error("New returned nil")
 	}
+	//nolint:staticcheck
 	if len(f.favs) != 0 {
 		t.Error("New did not create an empty favourites map")
 	}

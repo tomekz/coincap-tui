@@ -55,6 +55,7 @@ func (f *Favourites) Save() error {
 		if err != nil {
 			return err
 		}
+		//nolint:errcheck
 		os.WriteFile(path, content, 0o644)
 	}
 	return nil

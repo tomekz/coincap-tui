@@ -1,9 +1,5 @@
 /*
-*
-
-	Tui let's you check crypto prices in your terminal.
-
-*
+Tui let's you check crypto prices in your terminal.
 */
 package main
 
