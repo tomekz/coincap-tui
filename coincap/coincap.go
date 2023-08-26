@@ -47,6 +47,7 @@ func (e DataFetchError) Error() string {
 var client = resty.New().SetTimeout(5 * time.Second)
 
 func GetAssets(limit int) ([]Asset, error) {
+	log.Debugf("Fetching assets from coincap API")
 	var result GetAssetsResult
 	_, err := client.R().SetResult(&result).Get(fmt.Sprintf("https://api.coincap.io/v2/assets?limit=%d", limit))
 	if err != nil {
@@ -60,6 +61,7 @@ func GetAssets(limit int) ([]Asset, error) {
 }
 
 func GetAssetHistory(assetId string) ([]AssetHistory, error) {
+	log.Debugf("Fetching asset history from coincap API for assetId %s", assetId)
 	var result GetAssetHistoryResult
 	_, err := client.R().SetResult(&result).Get(fmt.Sprintf("https://api.coincap.io/v2/assets/%s/history?interval=h6", assetId))
 	if err != nil {

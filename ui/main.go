@@ -78,6 +78,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case GoBackMsg:
 		m.currView = tableView
+		log.Debug("going back to table view")
 
 	case SelectAssetMsg:
 		m.currView = graphView
