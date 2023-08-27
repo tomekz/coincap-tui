@@ -19,6 +19,10 @@ jobs:
           cache: true
       - run: go mod tidy
       - run: go test -v ./...
+      - uses: rickstaa/action-get-semver@v1
+        id: get_semver
+      - name: Set env
+        run: export RELEASE_VERSION=${{ steps.get_semver.outputs.current_version  }}
       - uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser

@@ -6,6 +6,8 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
+  - ldflags:
+    - "-X github.com/tomekz/coincap-tui/cmd.version={{.Env.RELEASE_VERSION}}"
     goos:
       - linux
       - windows
