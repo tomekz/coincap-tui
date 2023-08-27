@@ -7,6 +7,8 @@ import (
 	"github.com/tomekz/coincap-tui/cmd"
 )
 
+var version string
+
 func main() {
 	cmd.Execute()
 }
