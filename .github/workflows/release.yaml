@@ -22,7 +22,9 @@ jobs:
       - uses: rickstaa/action-get-semver@v1
         id: get_semver
       - name: Set env
-        run: export RELEASE_VERSION=${{ steps.get_semver.outputs.current_version  }}
+        run: echo "RELEASE_VERSION=${{ steps.get_semver.outputs.current_version  }}" >> $GITHUB_ENV
+      - name: Test
+        run: echo $RELEASE_VERSION 
       - uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
