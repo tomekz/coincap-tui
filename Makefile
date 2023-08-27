@@ -3,3 +3,6 @@ build:
 
 run: build
 	./bin/tui
+
+debug: build
+	DEBUG=true ./bin/tui
