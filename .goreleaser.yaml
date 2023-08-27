@@ -7,7 +7,7 @@ builds:
   - id: coincap-tui
   - env:
       - CGO_ENABLED=0
-  - ldflags:
+    ldflags:
     - "-X github.com/tomekz/coincap-tui/cmd.version={{.Env.RELEASE_VERSION}}"
     goos:
       - linux
