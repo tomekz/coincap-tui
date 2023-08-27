@@ -4,6 +4,7 @@ before:
   hooks:
     - go mod tidy
 builds:
+  - id: coincap-tui
   - env:
       - CGO_ENABLED=0
   - ldflags:
