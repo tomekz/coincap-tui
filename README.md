@@ -71,6 +71,11 @@ Download the `.apk`, `.deb` or `.rpm` from the [releases page](https://github.co
 $ coincap-tui
 ```
 
+Display the current version
+```
+$ coincap-tui version
+```
+
 ## dev
 
 ```sh
